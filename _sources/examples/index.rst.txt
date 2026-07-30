@@ -15,6 +15,24 @@ covers a basic introduction to module functions and usage.
 
     WaterData_demo
 
+USGS Water Data API vignettes
+-----------------------------
+These notebooks are Python ports of the new USGS Water Data API vignettes from
+the R `dataRetrieval`_ package. Each introduces a family of Water Data API
+functions and is executed against the live USGS Water Data API.
+
+.. _dataRetrieval: https://doi-usgs.github.io/dataRetrieval/
+
+.. toctree::
+    :maxdepth: 1
+
+    USGS_WaterData_Introduction_Examples
+    USGS_WaterData_DiscreteSamples_Examples
+    USGS_WaterData_DailyStatistics_Examples
+    USGS_WaterData_ContinuousData_Examples
+    USGS_WaterData_ReferenceLists_Examples
+    USGS_NGWMN_Examples
+
 Simple uses of the ``dataretrieval`` package
 --------------------------------------------
 
@@ -41,18 +59,18 @@ project repository.
 .. toctree::
     :maxdepth: 1
 
-    USGS_dataretrieval_DailyValues_Examples
-    USGS_dataretrieval_GroundwaterLevels_Examples
-    USGS_dataretrieval_Measurements_Examples
-    USGS_dataretrieval_ParameterCodes_Examples
-    USGS_dataretrieval_Peaks_Examples
-    USGS_dataretrieval_Ratings_Examples
-    USGS_dataretrieval_SiteInfo_Examples
-    USGS_dataretrieval_SiteInventory_Examples
-    USGS_dataretrieval_Statistics_Examples
-    USGS_dataretrieval_UnitValues_Examples
-    USGS_dataretrieval_WaterSamples_Examples
-    USGS_dataretrieval_WaterUse_Examples
+    USGS_WaterData_DailyValues_Examples
+    USGS_WaterData_GroundwaterLevels_Examples
+    USGS_WaterData_Measurements_Examples
+    USGS_WaterData_ParameterCodes_Examples
+    USGS_WaterData_Peaks_Examples
+    USGS_WaterData_Ratings_Examples
+    USGS_WaterData_SiteInfo_Examples
+    USGS_WaterData_SiteInventory_Examples
+    USGS_WaterData_Statistics_Examples
+    USGS_WaterData_UnitValues_Examples
+    USGS_WaterData_Samples_Examples
+    USGS_NWIS_WaterUse_Examples
 
 
 Using ``dataretrieval`` to obtain nation trends in peak annual streamflow
@@ -61,7 +79,7 @@ Using ``dataretrieval`` to obtain nation trends in peak annual streamflow
 .. toctree::
     :maxdepth: 2
 
-    nwisdemo01
+    peak_streamflow_trends
 
 
 Duplicating the R ``dataRetrieval`` vignettes functionality

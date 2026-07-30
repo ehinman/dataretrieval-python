@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Equivalents to R Vignette Examples &mdash; dataretrieval 0.1.dev1+g4dc9f6a68 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Python Equivalents to R Vignette Examples &mdash; dataretrieval 0.1.dev1+gd2920217d documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=bb1e5188"></script>
+      <script src="../_static/documentation_options.js?v=b530e927"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Contributing" href="../meta/contributing.html" />
-    <link rel="prev" title="National trends in peak annual streamflow" href="nwisdemo01.html" /> 
+    <link rel="prev" title="National trends in peak annual streamflow" href="peak_streamflow_trends.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="index.html#introduction-to-the-waterdata-module-of-dataretrieval">Introduction to the <code class="docutils literal notranslate"><span class="pre">waterdata</span></code> module of <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#usgs-water-data-api-vignettes">USGS Water Data API vignettes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#simple-uses-of-the-dataretrieval-package">Simple uses of the <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code> package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#example-notebooks-from-hydroshare">Example Notebooks from Hydroshare</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#using-dataretrieval-to-obtain-nation-trends-in-peak-annual-streamflow">Using <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code> to obtain nation trends in peak annual streamflow</a></li>
@@ -97,196 +98,117 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataretrieval</span> <span class="kn">import</span> <span class="n">nwis</span>
-<span class="kn">from</span> <span class="nn">dataretrieval</span> <span class="kn">import</span> <span class="n">waterdata</span>
-<span class="kn">from</span> <span class="nn">dataretrieval</span> <span class="kn">import</span> <span class="n">wqp</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">nwis</span><span class="p">,</span> <span class="n">waterdata</span><span class="p">,</span> <span class="n">wqp</span>
 </pre></div>
 </div>
 </div>
-<p>The dataRetrieval package was created as a python equivalent to the R dataRetrieval tool.</p>
-<p>The following shows python equivalents for methods outlined in the R dataRetrieval Vignette with the equivalent R code in comments</p>
-<div class="nbinput nblast docutils container">
+<p>The <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code> Python package was created as an equivalent to the R <code class="docutils literal notranslate"><span class="pre">dataRetrieval</span></code> package.</p>
+<p>The following shows Python equivalents for the methods outlined in the R <code class="docutils literal notranslate"><span class="pre">dataRetrieval</span></code> vignette, with the equivalent R code in comments.</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">library(dataRetrieval)</span>
-<span class="sd"># Choptank River near Greensboro, MD</span>
-<span class="sd">siteNumber &lt;- &quot;01491000&quot;</span>
-<span class="sd">ChoptankInfo &lt;- readNWISsite(siteNumber)</span>
-<span class="sd">parameterCd &lt;- &quot;00060&quot;</span>
-
-<span class="sd">#Raw daily data:</span>
-<span class="sd">rawDailyData &lt;- readNWISdv(siteNumber,parameterCd,</span>
-<span class="sd">                      &quot;1980-01-01&quot;,&quot;2010-01-01&quot;)</span>
-
-<span class="sd"># Sample data Nitrate:</span>
-<span class="sd">parameterCd &lt;- &quot;00618&quot;</span>
-<span class="sd">qwData &lt;- read_USGS_samples(monitoringLocationIdentifier=sprintf(&quot;USGS-%s&quot;, siteNumber),usgsPCode=parameterCd,</span>
-<span class="sd">                      activityStartDateLower=&quot;1980-01-01&quot;, activityStartDateUpper=&quot;2010-01-01&quot;)</span>
-
-<span class="sd">pCode &lt;- readNWISpCode(parameterCd)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="c1"># Choptank River near Greensboro, MD</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s1">&#39;01491000&#39;</span>
-<span class="n">chop_tank_info</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">)</span>
-<span class="n">parameterCd</span> <span class="o">=</span> <span class="s1">&#39;00060&#39;</span>
-
-<span class="c1"># raw daily data</span>
-<span class="n">rawDailyData</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s2">&quot;1980-01-01&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;2010-01-01&quot;</span><span class="p">)</span>
-
-<span class="c1"># sample data Nitrate:</span>
-<span class="n">parameterCd</span> <span class="o">=</span> <span class="s2">&quot;00618&quot;</span>
-<span class="n">samples_data</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span><span class="n">monitoringLocationIdentifier</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;USGS-</span><span class="si">{</span><span class="n">siteNumber</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">usgsPCode</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span> <span class="n">activityStartDateLower</span><span class="o">=</span><span class="s2">&quot;1980-01-01&quot;</span><span class="p">,</span> <span class="n">activityStartDateUpper</span><span class="o">=</span><span class="s2">&quot;2010-01-01&quot;</span><span class="p">)</span>
-
-<span class="n">pCode</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_pmcodes</span><span class="p">(</span><span class="n">parameterCd</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">{r getSite, echo=TRUE, eval=FALSE}</span>
 <span class="sd">siteNumbers &lt;- c(&quot;01491000&quot;,&quot;01645000&quot;)</span>
 <span class="sd">siteINFO &lt;- readNWISsite(siteNumbers)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumbers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;01491000&quot;</span><span class="p">,</span><span class="s2">&quot;01645000&quot;</span><span class="p">]</span>
-<span class="n">siteINFO</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_iv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumbers</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">siteNumbers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;USGS-01491000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-01645000&quot;</span><span class="p">]</span>
+<span class="n">siteINFO</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_monitoring_locations</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">siteNumbers</span><span class="p">,</span> <span class="n">skip_geometry</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: monitoring-locations · 1 page · 2 rows
+No API key detected — register for higher rate limits at https://api.waterdata.usgs.gov/signup/
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd"># Continuing from the previous example:</span>
 <span class="sd"># This pulls out just the daily, mean data:</span>
 <span class="sd">dailyDataAvailable &lt;- whatNWISdata(siteNumbers,</span>
 <span class="sd">                    service=&quot;dv&quot;, statCd=&quot;00003&quot;)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="n">dailyDataAvailable</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumbers</span><span class="p">,</span> <span class="n">statCd</span><span class="o">=</span><span class="s2">&quot;00003&quot;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">dailyDataAvailable</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_time_series_metadata</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">siteNumbers</span><span class="p">,</span> <span class="n">statistic_id</span><span class="o">=</span><span class="s2">&quot;00003&quot;</span><span class="p">,</span> <span class="n">skip_geometry</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: time-series-metadata · 1 page · 11 rows
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd"># Using defaults:</span>
-<span class="sd">parameterCd &lt;- &quot;00618&quot;</span>
-<span class="sd">parameterINFO &lt;- readNWISpCode(parameterCd)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="n">pCode</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_pmcodes</span><span class="p">(</span><span class="n">parameterCd</span><span class="o">=</span><span class="s2">&quot;00618&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd"># Choptank River near Greensboro, MD:</span>
 <span class="sd">siteNumber &lt;- &quot;01491000&quot;</span>
 <span class="sd">parameterCd &lt;- &quot;00060&quot;  # Discharge</span>
 <span class="sd">startDate &lt;- &quot;2009-10-01&quot;</span>
 <span class="sd">endDate &lt;- &quot;2012-09-30&quot;</span>
 
-<span class="sd">discharge &lt;- readNWISdv(siteNumber,</span>
-<span class="sd">                    parameterCd, startDate, endDate)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">discharge &lt;- readNWISdv(siteNumber, parameterCd, startDate, endDate)</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># Choptank River near Greensboro, MD:</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;01491000&quot;</span>
+<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;USGS-01491000&quot;</span>
 <span class="n">parameterCd</span> <span class="o">=</span> <span class="s2">&quot;00060&quot;</span>  <span class="c1"># Discharge</span>
-<span class="n">startDate</span> <span class="o">=</span> <span class="s2">&quot;2009-10-01&quot;</span>
-<span class="n">endDate</span> <span class="o">=</span> <span class="s2">&quot;2012-09-30&quot;</span>
 
-<span class="n">discharge</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">startDate</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">endDate</span><span class="p">)</span>
+<span class="n">discharge</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span>
+    <span class="n">parameter_code</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2009-10-01/2012-09-30&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: daily · 1 page · 1,096 rows
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">siteNumber &lt;- &quot;01491000&quot;</span>
 <span class="sd">parameterCd &lt;- c(&quot;00010&quot;,&quot;00060&quot;)  # Temperature and discharge</span>
-<span class="sd">statCd &lt;- c(&quot;00001&quot;,&quot;00003&quot;)  # Mean and maximum</span>
+<span class="sd">statCd &lt;- c(&quot;00001&quot;,&quot;00003&quot;)  # Maximum and mean</span>
 <span class="sd">startDate &lt;- &quot;2012-01-01&quot;</span>
 <span class="sd">endDate &lt;- &quot;2012-05-01&quot;</span>
 
-<span class="sd">temperatureAndFlow &lt;- readNWISdv(siteNumber, parameterCd,</span>
-<span class="sd">        startDate, endDate, statCd=statCd)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;01491000&quot;</span>
-<span class="n">parameterCd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00010&quot;</span><span class="p">,</span><span class="s2">&quot;00060&quot;</span><span class="p">]</span>  <span class="c1"># Temperature and discharge</span>
-<span class="n">statCd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00001&quot;</span><span class="p">,</span><span class="s2">&quot;00003&quot;</span><span class="p">]</span>  <span class="c1"># Mean and maximum</span>
-<span class="n">startDate</span> <span class="o">=</span> <span class="s2">&quot;2012-01-01&quot;</span>
-<span class="n">endDate</span> <span class="o">=</span> <span class="s2">&quot;2012-05-01&quot;</span>
+<span class="sd">temperatureAndFlow &lt;- readNWISdv(siteNumber, parameterCd, startDate, endDate, statCd=statCd)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;USGS-01491000&quot;</span>
+<span class="n">parameterCd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00010&quot;</span><span class="p">,</span> <span class="s2">&quot;00060&quot;</span><span class="p">]</span>  <span class="c1"># Temperature and discharge</span>
+<span class="n">statisticId</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00001&quot;</span><span class="p">,</span> <span class="s2">&quot;00003&quot;</span><span class="p">]</span>  <span class="c1"># Maximum and mean</span>
 
-<span class="n">temperatureAndFlow</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
-                                     <span class="n">start</span><span class="o">=</span><span class="n">startDate</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">endDate</span><span class="p">,</span> <span class="n">statCd</span><span class="o">=</span><span class="n">statCd</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">parameterCd &lt;- &quot;00060&quot;  # Discharge</span>
-<span class="sd">startDate &lt;- &quot;2012-05-12&quot;</span>
-<span class="sd">endDate &lt;- &quot;2012-05-13&quot;</span>
-<span class="sd">dischargeUnit &lt;- readNWISuv(siteNumber, parameterCd,</span>
-<span class="sd">        startDate, endDate)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;01491000&quot;</span>
-<span class="n">parameterCd</span> <span class="o">=</span> <span class="s2">&quot;00060&quot;</span>  <span class="c1"># Discharge</span>
-<span class="n">startDate</span> <span class="o">=</span> <span class="s2">&quot;2012-05-12&quot;</span>
-<span class="n">endDate</span> <span class="o">=</span> <span class="s2">&quot;2012-05-13&quot;</span>
-<span class="n">dischargeUnit</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_iv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
-                            <span class="n">start</span><span class="o">=</span><span class="n">startDate</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">endDate</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd"># Dissolved Nitrate parameter codes:</span>
-<span class="sd">parameterCd &lt;- c(&quot;00618&quot;,&quot;71851&quot;)</span>
-<span class="sd">startDate &lt;- &quot;1985-10-01&quot;</span>
-<span class="sd">endDate &lt;- &quot;2012-09-30&quot;</span>
-<span class="sd">dfLong &lt;- read_USGS_samples(monitoringLocationIdentifier=sprintf(&quot;USGS-%s&quot;, siteNumber), usgsPCode=parameterCd,</span>
-<span class="sd">      activityStartDateLower=startDate, activityStartDateUpper=endDate)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;01491000&quot;</span>
-<span class="n">parameterCd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00618&quot;</span><span class="p">,</span><span class="s2">&quot;71851&quot;</span><span class="p">]</span>
-<span class="n">startDate</span> <span class="o">=</span> <span class="s2">&quot;1985-10-01&quot;</span>
-<span class="n">endDate</span> <span class="o">=</span> <span class="s2">&quot;2012-09-30&quot;</span>
-<span class="n">dfLong</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span><span class="n">monitoringLocationIdentifier</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;USGS-</span><span class="si">{</span><span class="n">siteNumber</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">usgsPCode</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
-                                      <span class="n">activityStartDateLower</span><span class="o">=</span><span class="n">startDate</span><span class="p">,</span> <span class="n">activityStartDateUpper</span><span class="o">=</span><span class="n">endDate</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">siteNumber &lt;- &quot;434400121275801&quot;</span>
-<span class="sd">groundWater &lt;- readNWISgwl(siteNumber)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;434400121275801&quot;</span>
-<span class="n">groundWater</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_gwlevels</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">)</span>
+<span class="n">temperatureAndFlow</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span>
+    <span class="n">parameter_code</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
+    <span class="n">statistic_id</span><span class="o">=</span><span class="n">statisticId</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2012-01-01/2012-05-01&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -296,175 +218,625 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 <span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">KeyError</span>                                  Traceback (most recent call last)
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/.local/lib/python3.12/site-packages/pandas/core/indexes/base.py:3812</span>, in <span class="ansi-cyan-fg">Index.get_loc</span><span class="ansi-blue-fg">(self, key)</span>
-<span class="ansi-green-fg">   3811</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">3812</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">_engine</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">get_loc</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">casted_key</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   3813</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">KeyError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> err:
+<span class="ansi-red-fg">RateLimited</span>                               Traceback (most recent call last)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:655</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.track</span><span class="ansi-blue-fg">(index, args)</span>
+<span class="ansi-green-fg">    654</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;One sub-request (with retry) + result-store + progress tick.&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">655</span> result = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _retry(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span>: fetch_gated(args), <span style="color: rgb(0,135,0)">self</span>.retry_policy)
+<span class="ansi-green-fg">    656</span> <span style="color: rgb(0,135,0)">self</span>._chunks[index] = result
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">pandas/_libs/index.pyx:167</span>, in <span class="ansi-cyan-fg">pandas._libs.index.IndexEngine.get_loc</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/retry.py:338</span>, in <span class="ansi-cyan-fg">_retry</span><span class="ansi-blue-fg">(afn, policy)</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> afn()
+<span class="ansi-green-fg">    339</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">Exception</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> exc:  <span style="color: rgb(95,135,135)"># noqa: BLE001 — re-raised unless retryable</span>
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">pandas/_libs/index.pyx:196</span>, in <span class="ansi-cyan-fg">pandas._libs.index.IndexEngine.get_loc</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:649</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.fetch_gated</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    648</span> <span class="ansi-bold" style="color: rgb(0,135,0)">async</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> semaphore:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">649</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> <span style="color: rgb(0,135,0)">self</span>.fetch(args)
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">pandas/_libs/hashtable_class_helper.pxi:7088</span>, in <span class="ansi-cyan-fg">pandas._libs.hashtable.PyObjectHashTable.get_item</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:942</span>, in <span class="ansi-cyan-fg">_fetch_once</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    941</span> req = _construct_api_requests(**args)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">942</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _walk_pages(geopd=GEOPANDAS, req=req)
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">pandas/_libs/hashtable_class_helper.pxi:7096</span>, in <span class="ansi-cyan-fg">pandas._libs.hashtable.PyObjectHashTable.get_item</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:816</span>, in <span class="ansi-cyan-fg">_walk_pages</span><span class="ansi-blue-fg">(geopd, req, client)</span>
+<span class="ansi-green-fg">    814</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.request(method, cursor, headers=headers, content=content)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">816</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _paginate(
+<span class="ansi-green-fg">    817</span>     req,
+<span class="ansi-green-fg">    818</span>     parse_response=functools.partial(_ogc_parse_response, geopd=geopd),
+<span class="ansi-green-fg">    819</span>     follow_up=follow_up,
+<span class="ansi-green-fg">    820</span>     client=client,
+<span class="ansi-green-fg">    821</span> )
 
-<span class="ansi-red-fg">KeyError</span>: &#39;lev_tz_cd&#39;
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:695</span>, in <span class="ansi-cyan-fg">_paginate</span><span class="ansi-blue-fg">(initial_req, parse_response, follow_up, client, raise_for_status)</span>
+<span class="ansi-green-fg">    694</span> resp = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.send(initial_req)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span> <span class="ansi-black-fg ansi-yellow-bg">raise_for_status</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">resp</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    696</span> initial_response = resp
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/errors.py:127</span>, in <span class="ansi-cyan-fg">_raise_for_non_200</span><span class="ansi-blue-fg">(resp)</span>
+<span class="ansi-green-fg">    126</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">127</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> error_for_status(
+<span class="ansi-green-fg">    128</span>     status,
+<span class="ansi-green-fg">    129</span>     _error_body(resp),
+<span class="ansi-green-fg">    130</span>     retry_after=_parse_retry_after(resp.headers.get(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Retry-After</span><span class="ansi-yellow-fg">&#34;</span>)),
+<span class="ansi-green-fg">    131</span> )
+
+<span class="ansi-red-fg">RateLimited</span>: 429: Too many requests made. Please obtain an API token or try again later.
 
 The above exception was the direct cause of the following exception:
 
-<span class="ansi-red-fg">KeyError</span>                                  Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 6</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-yellow-fg">&#39;&#39;&#39;</span>
-<span class="ansi-green-fg">      2</span> <span class="ansi-yellow-fg">siteNumber &lt;- &#34;434400121275801&#34;</span>
-<span class="ansi-green-fg">      3</span> <span class="ansi-yellow-fg">groundWater &lt;- readNWISgwl(siteNumber)</span>
-<span class="ansi-green-fg">      4</span> <span class="ansi-yellow-fg">&#39;&#39;&#39;</span>
-<span class="ansi-green-fg">      5</span> siteNumber = <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">434400121275801</span><span class="ansi-yellow-fg">&#34;</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">6</span> groundWater, md = <span class="ansi-yellow-bg">nwis</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">get_gwlevels</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">sites</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">siteNumber</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-red-fg">QuotaExhausted</span>                            Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 14</span>
+<span class="ansi-green-fg">     10</span> siteNumber = <span class="ansi-yellow-fg">&#34;USGS-01491000&#34;</span>
+<span class="ansi-green-fg">     11</span> parameterCd = [<span class="ansi-yellow-fg">&#34;00010&#34;</span>, <span class="ansi-yellow-fg">&#34;00060&#34;</span>]  <span style="color: rgb(95,135,135)"># Temperature and discharge</span>
+<span class="ansi-green-fg">     12</span> statisticId = [<span class="ansi-yellow-fg">&#34;00001&#34;</span>, <span class="ansi-yellow-fg">&#34;00003&#34;</span>]  <span style="color: rgb(95,135,135)"># Maximum and mean</span>
+<span class="ansi-green-fg">     13</span>
+<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">14</span> temperatureAndFlow, md = waterdata.get_daily(
+<span class="ansi-green-fg">     15</span>     monitoring_location_id=siteNumber,
+<span class="ansi-green-fg">     16</span>     parameter_code=parameterCd,
+<span class="ansi-green-fg">     17</span>     statistic_id=statisticId,
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/.local/lib/python3.12/site-packages/dataretrieval/nwis.py:346</span>, in <span class="ansi-cyan-fg">get_gwlevels</span><span class="ansi-blue-fg">(sites, start, end, multi_index, datetime_index, ssl_check, **kwargs)</span>
-<span class="ansi-green-fg">    343</span> df = _read_rdb(response.text)
-<span class="ansi-green-fg">    345</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> datetime_index <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">True</span>:
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">346</span>     df = <span class="ansi-yellow-bg">format_datetime</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">df</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-fg ansi-yellow-bg">lev_dt</span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-fg ansi-yellow-bg">lev_tm</span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-fg ansi-yellow-bg">lev_tz_cd</span><span class="ansi-yellow-fg ansi-yellow-bg">&#34;</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    348</span> <span style="color: rgb(95,135,135)"># Filter by kwarg parameterCd because the service doesn&#39;t do it</span>
-<span class="ansi-green-fg">    349</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">parameterCd</span><span class="ansi-yellow-fg">&#34;</span> <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> kwargs:
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/api.py:293</span>, in <span class="ansi-cyan-fg">get_daily</span><span class="ansi-blue-fg">(monitoring_location_id, parameter_code, statistic_id, properties, time_series_id, daily_id, approval_status, unit_of_measure, qualifier, value, last_modified, skip_geometry, time, bbox, limit, filter, filter_lang, convert_type, max_rows, **queryables)</span>
+<span class="ansi-green-fg">    290</span> <span style="color: rgb(95,135,135)"># Build argument dictionary, omitting None values</span>
+<span class="ansi-green-fg">    291</span> args = _get_args(<span style="color: rgb(0,135,0)">locals</span>(), exclude={<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">max_rows</span><span class="ansi-yellow-fg">&#34;</span>})
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">293</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/.local/lib/python3.12/site-packages/dataretrieval/utils.py:79</span>, in <span class="ansi-cyan-fg">format_datetime</span><span class="ansi-blue-fg">(df, date_field, time_field, tz_field)</span>
-<span class="ansi-green-fg">     56</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;Creates a datetime field from separate date, time, and</span>
-<span class="ansi-green-fg">     57</span> <span class="ansi-yellow-fg">time zone fields.</span>
-<span class="ansi-green-fg">     58</span>
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     76</span>
-<span class="ansi-green-fg">     77</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
-<span class="ansi-green-fg">     78</span> <span style="color: rgb(95,135,135)"># create a datetime index from the columns in qwdata response</span>
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">79</span> df[tz_field] = <span class="ansi-yellow-bg">df</span><span class="ansi-yellow-bg">[</span><span class="ansi-yellow-bg">tz_field</span><span class="ansi-yellow-bg">]</span>.map(tz)
-<span class="ansi-green-fg">     81</span> df[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">datetime</span><span class="ansi-yellow-fg">&#34;</span>] = pd.to_datetime(
-<span class="ansi-green-fg">     82</span>     df[date_field] + <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg"> </span><span class="ansi-yellow-fg">&#34;</span> + df[time_field] + <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg"> </span><span class="ansi-yellow-fg">&#34;</span> + df[tz_field],
-<span class="ansi-green-fg">     83</span>     <span style="color: rgb(0,135,0)">format</span>=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">ISO8601</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     84</span>     utc=<span class="ansi-bold" style="color: rgb(0,135,0)">True</span>,
-<span class="ansi-green-fg">     85</span> )
-<span class="ansi-green-fg">     87</span> <span style="color: rgb(95,135,135)"># if there are any incomplete dates, warn the user</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/utils.py:251</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows)</span>
+<span class="ansi-green-fg">    249</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> output_id <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    250</span>     output_id = _OUTPUT_ID_BY_SERVICE[service]
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">251</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">engine</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span>
+<span class="ansi-green-fg">    252</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    253</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    254</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">output_id</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    255</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    256</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">base_url</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">OGC_API_URL</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    257</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">extra_id_cols</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">_EXTRA_ID_COLS</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    258</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">dialect</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">WATERDATA_DIALECT</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    259</span> <span class="ansi-black-fg ansi-yellow-bg">)</span>
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/.local/lib/python3.12/site-packages/pandas/core/frame.py:4113</span>, in <span class="ansi-cyan-fg">DataFrame.__getitem__</span><span class="ansi-blue-fg">(self, key)</span>
-<span class="ansi-green-fg">   4111</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span>.columns.nlevels &gt; <span class="ansi-green-fg">1</span>:
-<span class="ansi-green-fg">   4112</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>._getitem_multilevel(key)
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">4113</span> indexer = <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">columns</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">get_loc</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">key</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   4114</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> is_integer(indexer):
-<span class="ansi-green-fg">   4115</span>     indexer = [indexer]
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:920</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows, base_url, extra_id_cols, dialect)</span>
+<span class="ansi-green-fg">    918</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _progress.progress_context(service=service), _row_cap(max_rows):
+<span class="ansi-green-fg">    919</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _ogc_base_url(base_url), _dialect(dialect):
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">920</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">_fetch_once</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/.local/lib/python3.12/site-packages/pandas/core/indexes/base.py:3819</span>, in <span class="ansi-cyan-fg">Index.get_loc</span><span class="ansi-blue-fg">(self, key)</span>
-<span class="ansi-green-fg">   3814</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">isinstance</span>(casted_key, <span style="color: rgb(0,135,0)">slice</span>) <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> (
-<span class="ansi-green-fg">   3815</span>         <span style="color: rgb(0,135,0)">isinstance</span>(casted_key, abc.Iterable)
-<span class="ansi-green-fg">   3816</span>         <span class="ansi-bold" style="color: rgb(175,0,255)">and</span> <span style="color: rgb(0,135,0)">any</span>(<span style="color: rgb(0,135,0)">isinstance</span>(x, <span style="color: rgb(0,135,0)">slice</span>) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> x <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> casted_key)
-<span class="ansi-green-fg">   3817</span>     ):
-<span class="ansi-green-fg">   3818</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> InvalidIndexError(key)
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">3819</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">KeyError</span>(key) <span class="ansi-bold" style="color: rgb(0,135,0)">from</span> <span class="ansi-blue-intense-fg ansi-bold">err</span>
-<span class="ansi-green-fg">   3820</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">TypeError</span>:
-<span class="ansi-green-fg">   3821</span>     <span style="color: rgb(95,135,135)"># If we have a listlike key, _check_indexing_error will raise</span>
-<span class="ansi-green-fg">   3822</span>     <span style="color: rgb(95,135,135)">#  InvalidIndexError. Otherwise we fall through and re-raise</span>
-<span class="ansi-green-fg">   3823</span>     <span style="color: rgb(95,135,135)">#  the TypeError.</span>
-<span class="ansi-green-fg">   3824</span>     <span style="color: rgb(0,135,0)">self</span>._check_indexing_error(key)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:771</span>, in <span class="ansi-cyan-fg">multi_value_chunked.&lt;locals&gt;.decorator.&lt;locals&gt;.wrapper</span><span class="ansi-blue-fg">(args, finalize)</span>
+<span class="ansi-green-fg">    767</span> retry_policy = RetryPolicy.from_env()
+<span class="ansi-green-fg">    768</span> <span style="color: rgb(95,135,135)"># The concurrency cap is resolved inside ``resume()`` from</span>
+<span class="ansi-green-fg">    769</span> <span style="color: rgb(95,135,135)"># ``API_USGS_CONCURRENT``; ``1`` is a sequential gather,</span>
+<span class="ansi-green-fg">    770</span> <span style="color: rgb(95,135,135)"># ``total &lt;= 1`` a one-element gather — no special branch.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">771</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">ChunkedCall</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">plan</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">fetch</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">retry_policy</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">resume</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
 
-<span class="ansi-red-fg">KeyError</span>: &#39;lev_tz_cd&#39;
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:545</span>, in <span class="ansi-cyan-fg">ChunkedCall.resume</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    504</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    505</span> <span class="ansi-yellow-fg">Drive the chunked call to completion and return the combined result.</span>
+<span class="ansi-green-fg">    506</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    536</span> <span class="ansi-yellow-fg">    condition to clear and call ``exc.call.resume()`` again.</span>
+<span class="ansi-green-fg">    537</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    538</span> <span style="color: rgb(95,135,135)"># Drive inside the snapshot taken at construction (see ``__init__``).</span>
+<span class="ansi-green-fg">    539</span> <span style="color: rgb(95,135,135)"># ``start_blocking_portal`` copies the *calling* context into its</span>
+<span class="ansi-green-fg">    540</span> <span style="color: rgb(95,135,135)"># worker thread, and running here means that calling context is the</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    543</span> <span style="color: rgb(95,135,135)"># even when this is a resume fired long after the original ``with``</span>
+<span class="ansi-green-fg">    544</span> <span style="color: rgb(95,135,135)"># blocks exited.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">545</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_ctx</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">run</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_resume_in_context</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:555</span>, in <span class="ansi-cyan-fg">ChunkedCall._resume_in_context</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    549</span> concurrency = _read_concurrency_env()
+<span class="ansi-green-fg">    550</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> start_blocking_portal() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> portal:
+<span class="ansi-green-fg">    551</span>     <span style="color: rgb(95,135,135)"># ``portal.call`` returns ``Any`` because ``functools.partial``</span>
+<span class="ansi-green-fg">    552</span>     <span style="color: rgb(95,135,135)"># erases ``_run``&#39;s return type; restore the declared tuple.</span>
+<span class="ansi-green-fg">    553</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(
+<span class="ansi-green-fg">    554</span>         <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">tuple[pd.DataFrame, Any]</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">555</span>         <span class="ansi-black-fg ansi-yellow-bg">portal</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">call</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">functools</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">partial</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_run</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">concurrency</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">)</span>,
+<span class="ansi-green-fg">    556</span>     )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:338</span>, in <span class="ansi-cyan-fg">BlockingPortal.call</span><span class="ansi-blue-fg">(self, func, *args)</span>
+<span class="ansi-green-fg">    323</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">call</span>(
+<span class="ansi-green-fg">    324</span>     <span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-fg">    325</span>     func: Callable[[Unpack[PosArgsT]], Awaitable[T_Retval] | T_Retval],
+<span class="ansi-green-fg">    326</span>     *args: Unpack[PosArgsT],
+<span class="ansi-green-fg">    327</span> ) -&gt; T_Retval:
+<span class="ansi-green-fg">    328</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    329</span> <span class="ansi-yellow-fg">    Call the given function in the event loop thread.</span>
+<span class="ansi-green-fg">    330</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    336</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-yellow-fg">    &#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(T_Retval, <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">start_task_soon</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">func</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">*</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:460</span>, in <span class="ansi-cyan-fg">Future.result</span><span class="ansi-blue-fg">(self, timeout)</span>
+<span class="ansi-green-fg">    458</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> CancelledError()
+<span class="ansi-green-fg">    459</span> <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> <span style="color: rgb(0,135,0)">self</span>._state == FINISHED:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">460</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">__get_result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    461</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    462</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">TimeoutError</span>()
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:402</span>, in <span class="ansi-cyan-fg">Future.__get_result</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    400</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span>._exception <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    401</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">402</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span style="color: rgb(0,135,0)">self</span>._exception
+<span class="ansi-green-fg">    403</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">finally</span>:
+<span class="ansi-green-fg">    404</span>         <span style="color: rgb(95,135,135)"># Break a reference cycle with the exception in self._exception</span>
+<span class="ansi-green-fg">    405</span>         <span style="color: rgb(0,135,0)">self</span> = <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:263</span>, in <span class="ansi-cyan-fg">BlockingPortal._call_func</span><span class="ansi-blue-fg">(self, func, args, kwargs, future)</span>
+<span class="ansi-green-fg">    261</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> CancelScope() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> scope:
+<span class="ansi-green-fg">    262</span>         future.add_done_callback(callback)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">263</span>         retval = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> retval_or_awaitable
+<span class="ansi-green-fg">    264</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    265</span>     retval = retval_or_awaitable
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:695</span>, in <span class="ansi-cyan-fg">ChunkedCall._run</span><span class="ansi-blue-fg">(self, max_concurrent)</span>
+<span class="ansi-green-fg">    693</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> first_transient <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    694</span>             interrupted, exc = first_transient
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> interrupted <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">exc</span>
+<span class="ansi-green-fg">    697</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>.finalize(*<span style="color: rgb(0,135,0)">self</span>._combine_raw())
+
+<span class="ansi-red-fg">QuotaExhausted</span>: HTTP 429 after 0/1 sub-requests; catch QuotaExhausted (or ChunkInterrupted) to access .partial_frame or .call.resume() once the rate-limit window has rolled over. Cause: RateLimited: 429: Too many requests made. Please obtain an API token or try again later.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">parameterCd &lt;- &quot;00060&quot;  # Discharge</span>
+<span class="sd">startDate &lt;- &quot;2012-05-12&quot;</span>
+<span class="sd">endDate &lt;- &quot;2012-05-13&quot;</span>
+<span class="sd">dischargeUnit &lt;- readNWISuv(siteNumber, parameterCd, startDate, endDate)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;USGS-01491000&quot;</span>
+<span class="n">parameterCd</span> <span class="o">=</span> <span class="s2">&quot;00060&quot;</span>  <span class="c1"># Discharge</span>
+
+<span class="n">dischargeUnit</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_continuous</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span>
+    <span class="n">parameter_code</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2012-05-12/2012-05-13&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">RateLimited</span>                               Traceback (most recent call last)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:655</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.track</span><span class="ansi-blue-fg">(index, args)</span>
+<span class="ansi-green-fg">    654</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;One sub-request (with retry) + result-store + progress tick.&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">655</span> result = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _retry(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span>: fetch_gated(args), <span style="color: rgb(0,135,0)">self</span>.retry_policy)
+<span class="ansi-green-fg">    656</span> <span style="color: rgb(0,135,0)">self</span>._chunks[index] = result
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/retry.py:338</span>, in <span class="ansi-cyan-fg">_retry</span><span class="ansi-blue-fg">(afn, policy)</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> afn()
+<span class="ansi-green-fg">    339</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">Exception</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> exc:  <span style="color: rgb(95,135,135)"># noqa: BLE001 — re-raised unless retryable</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:649</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.fetch_gated</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    648</span> <span class="ansi-bold" style="color: rgb(0,135,0)">async</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> semaphore:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">649</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> <span style="color: rgb(0,135,0)">self</span>.fetch(args)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:942</span>, in <span class="ansi-cyan-fg">_fetch_once</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    941</span> req = _construct_api_requests(**args)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">942</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _walk_pages(geopd=GEOPANDAS, req=req)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:816</span>, in <span class="ansi-cyan-fg">_walk_pages</span><span class="ansi-blue-fg">(geopd, req, client)</span>
+<span class="ansi-green-fg">    814</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.request(method, cursor, headers=headers, content=content)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">816</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _paginate(
+<span class="ansi-green-fg">    817</span>     req,
+<span class="ansi-green-fg">    818</span>     parse_response=functools.partial(_ogc_parse_response, geopd=geopd),
+<span class="ansi-green-fg">    819</span>     follow_up=follow_up,
+<span class="ansi-green-fg">    820</span>     client=client,
+<span class="ansi-green-fg">    821</span> )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:695</span>, in <span class="ansi-cyan-fg">_paginate</span><span class="ansi-blue-fg">(initial_req, parse_response, follow_up, client, raise_for_status)</span>
+<span class="ansi-green-fg">    694</span> resp = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.send(initial_req)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span> <span class="ansi-black-fg ansi-yellow-bg">raise_for_status</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">resp</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    696</span> initial_response = resp
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/errors.py:127</span>, in <span class="ansi-cyan-fg">_raise_for_non_200</span><span class="ansi-blue-fg">(resp)</span>
+<span class="ansi-green-fg">    126</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">127</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> error_for_status(
+<span class="ansi-green-fg">    128</span>     status,
+<span class="ansi-green-fg">    129</span>     _error_body(resp),
+<span class="ansi-green-fg">    130</span>     retry_after=_parse_retry_after(resp.headers.get(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Retry-After</span><span class="ansi-yellow-fg">&#34;</span>)),
+<span class="ansi-green-fg">    131</span> )
+
+<span class="ansi-red-fg">RateLimited</span>: 429: Too many requests made. Please obtain an API token or try again later.
+
+The above exception was the direct cause of the following exception:
+
+<span class="ansi-red-fg">QuotaExhausted</span>                            Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 10</span>
+<span class="ansi-green-fg">      6</span> &#34;&#34;&#34;
+<span class="ansi-green-fg">      7</span> siteNumber = <span class="ansi-yellow-fg">&#34;USGS-01491000&#34;</span>
+<span class="ansi-green-fg">      8</span> parameterCd = <span class="ansi-yellow-fg">&#34;00060&#34;</span>  <span style="color: rgb(95,135,135)"># Discharge</span>
+<span class="ansi-green-fg">      9</span>
+<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">10</span> dischargeUnit, md = waterdata.get_continuous(
+<span class="ansi-green-fg">     11</span>     monitoring_location_id=siteNumber,
+<span class="ansi-green-fg">     12</span>     parameter_code=parameterCd,
+<span class="ansi-green-fg">     13</span>     time=<span class="ansi-yellow-fg">&#34;2012-05-12/2012-05-13&#34;</span>,
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/api.py:500</span>, in <span class="ansi-cyan-fg">get_continuous</span><span class="ansi-blue-fg">(monitoring_location_id, parameter_code, statistic_id, properties, time_series_id, continuous_id, approval_status, unit_of_measure, qualifier, value, last_modified, time, limit, filter, filter_lang, convert_type, max_rows, **queryables)</span>
+<span class="ansi-green-fg">    497</span> <span style="color: rgb(95,135,135)"># Build argument dictionary, omitting None values</span>
+<span class="ansi-green-fg">    498</span> args = _get_args(<span style="color: rgb(0,135,0)">locals</span>(), exclude={<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">max_rows</span><span class="ansi-yellow-fg">&#34;</span>})
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">500</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/utils.py:251</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows)</span>
+<span class="ansi-green-fg">    249</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> output_id <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    250</span>     output_id = _OUTPUT_ID_BY_SERVICE[service]
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">251</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">engine</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span>
+<span class="ansi-green-fg">    252</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    253</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    254</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">output_id</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    255</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    256</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">base_url</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">OGC_API_URL</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    257</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">extra_id_cols</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">_EXTRA_ID_COLS</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    258</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">dialect</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">WATERDATA_DIALECT</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    259</span> <span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:920</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows, base_url, extra_id_cols, dialect)</span>
+<span class="ansi-green-fg">    918</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _progress.progress_context(service=service), _row_cap(max_rows):
+<span class="ansi-green-fg">    919</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _ogc_base_url(base_url), _dialect(dialect):
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">920</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">_fetch_once</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:771</span>, in <span class="ansi-cyan-fg">multi_value_chunked.&lt;locals&gt;.decorator.&lt;locals&gt;.wrapper</span><span class="ansi-blue-fg">(args, finalize)</span>
+<span class="ansi-green-fg">    767</span> retry_policy = RetryPolicy.from_env()
+<span class="ansi-green-fg">    768</span> <span style="color: rgb(95,135,135)"># The concurrency cap is resolved inside ``resume()`` from</span>
+<span class="ansi-green-fg">    769</span> <span style="color: rgb(95,135,135)"># ``API_USGS_CONCURRENT``; ``1`` is a sequential gather,</span>
+<span class="ansi-green-fg">    770</span> <span style="color: rgb(95,135,135)"># ``total &lt;= 1`` a one-element gather — no special branch.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">771</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">ChunkedCall</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">plan</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">fetch</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">retry_policy</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">resume</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:545</span>, in <span class="ansi-cyan-fg">ChunkedCall.resume</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    504</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    505</span> <span class="ansi-yellow-fg">Drive the chunked call to completion and return the combined result.</span>
+<span class="ansi-green-fg">    506</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    536</span> <span class="ansi-yellow-fg">    condition to clear and call ``exc.call.resume()`` again.</span>
+<span class="ansi-green-fg">    537</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    538</span> <span style="color: rgb(95,135,135)"># Drive inside the snapshot taken at construction (see ``__init__``).</span>
+<span class="ansi-green-fg">    539</span> <span style="color: rgb(95,135,135)"># ``start_blocking_portal`` copies the *calling* context into its</span>
+<span class="ansi-green-fg">    540</span> <span style="color: rgb(95,135,135)"># worker thread, and running here means that calling context is the</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    543</span> <span style="color: rgb(95,135,135)"># even when this is a resume fired long after the original ``with``</span>
+<span class="ansi-green-fg">    544</span> <span style="color: rgb(95,135,135)"># blocks exited.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">545</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_ctx</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">run</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_resume_in_context</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:555</span>, in <span class="ansi-cyan-fg">ChunkedCall._resume_in_context</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    549</span> concurrency = _read_concurrency_env()
+<span class="ansi-green-fg">    550</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> start_blocking_portal() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> portal:
+<span class="ansi-green-fg">    551</span>     <span style="color: rgb(95,135,135)"># ``portal.call`` returns ``Any`` because ``functools.partial``</span>
+<span class="ansi-green-fg">    552</span>     <span style="color: rgb(95,135,135)"># erases ``_run``&#39;s return type; restore the declared tuple.</span>
+<span class="ansi-green-fg">    553</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(
+<span class="ansi-green-fg">    554</span>         <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">tuple[pd.DataFrame, Any]</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">555</span>         <span class="ansi-black-fg ansi-yellow-bg">portal</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">call</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">functools</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">partial</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_run</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">concurrency</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">)</span>,
+<span class="ansi-green-fg">    556</span>     )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:338</span>, in <span class="ansi-cyan-fg">BlockingPortal.call</span><span class="ansi-blue-fg">(self, func, *args)</span>
+<span class="ansi-green-fg">    323</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">call</span>(
+<span class="ansi-green-fg">    324</span>     <span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-fg">    325</span>     func: Callable[[Unpack[PosArgsT]], Awaitable[T_Retval] | T_Retval],
+<span class="ansi-green-fg">    326</span>     *args: Unpack[PosArgsT],
+<span class="ansi-green-fg">    327</span> ) -&gt; T_Retval:
+<span class="ansi-green-fg">    328</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    329</span> <span class="ansi-yellow-fg">    Call the given function in the event loop thread.</span>
+<span class="ansi-green-fg">    330</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    336</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-yellow-fg">    &#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(T_Retval, <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">start_task_soon</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">func</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">*</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:460</span>, in <span class="ansi-cyan-fg">Future.result</span><span class="ansi-blue-fg">(self, timeout)</span>
+<span class="ansi-green-fg">    458</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> CancelledError()
+<span class="ansi-green-fg">    459</span> <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> <span style="color: rgb(0,135,0)">self</span>._state == FINISHED:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">460</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">__get_result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    461</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    462</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">TimeoutError</span>()
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:402</span>, in <span class="ansi-cyan-fg">Future.__get_result</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    400</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span>._exception <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    401</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">402</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span style="color: rgb(0,135,0)">self</span>._exception
+<span class="ansi-green-fg">    403</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">finally</span>:
+<span class="ansi-green-fg">    404</span>         <span style="color: rgb(95,135,135)"># Break a reference cycle with the exception in self._exception</span>
+<span class="ansi-green-fg">    405</span>         <span style="color: rgb(0,135,0)">self</span> = <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:263</span>, in <span class="ansi-cyan-fg">BlockingPortal._call_func</span><span class="ansi-blue-fg">(self, func, args, kwargs, future)</span>
+<span class="ansi-green-fg">    261</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> CancelScope() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> scope:
+<span class="ansi-green-fg">    262</span>         future.add_done_callback(callback)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">263</span>         retval = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> retval_or_awaitable
+<span class="ansi-green-fg">    264</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    265</span>     retval = retval_or_awaitable
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:695</span>, in <span class="ansi-cyan-fg">ChunkedCall._run</span><span class="ansi-blue-fg">(self, max_concurrent)</span>
+<span class="ansi-green-fg">    693</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> first_transient <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    694</span>             interrupted, exc = first_transient
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> interrupted <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">exc</span>
+<span class="ansi-green-fg">    697</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>.finalize(*<span style="color: rgb(0,135,0)">self</span>._combine_raw())
+
+<span class="ansi-red-fg">QuotaExhausted</span>: HTTP 429 after 0/1 sub-requests; catch QuotaExhausted (or ChunkInterrupted) to access .partial_frame or .call.resume() once the rate-limit window has rolled over. Cause: RateLimited: 429: Too many requests made. Please obtain an API token or try again later.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># Dissolved Nitrate parameter codes:</span>
+<span class="sd">parameterCd &lt;- c(&quot;00618&quot;,&quot;71851&quot;)</span>
+<span class="sd">startDate &lt;- &quot;1985-10-01&quot;</span>
+<span class="sd">endDate &lt;- &quot;2012-09-30&quot;</span>
+<span class="sd">dfLong &lt;- read_USGS_samples(monitoringLocationIdentifier=sprintf(&quot;USGS-%s&quot;, siteNumber),</span>
+<span class="sd">      usgsPCode=parameterCd, activityStartDateLower=startDate, activityStartDateUpper=endDate)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">siteNumber</span> <span class="o">=</span> <span class="s2">&quot;USGS-01491000&quot;</span>
+<span class="n">parameterCd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;00618&quot;</span><span class="p">,</span> <span class="s2">&quot;71851&quot;</span><span class="p">]</span>
+
+<span class="n">dfLong</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span>
+    <span class="n">monitoringLocationIdentifier</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">,</span>
+    <span class="n">usgsPCode</span><span class="o">=</span><span class="n">parameterCd</span><span class="p">,</span>
+    <span class="n">activityStartDateLower</span><span class="o">=</span><span class="s2">&quot;1985-10-01&quot;</span><span class="p">,</span>
+    <span class="n">activityStartDateUpper</span><span class="o">=</span><span class="s2">&quot;2012-09-30&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/tmp/ipykernel_9152/2092726829.py:12: DeprecationWarning: The &#39;activityStartDateLower&#39; argument is deprecated and will be removed in a future release; use &#39;activity_start_date_lower&#39; instead.
+  dfLong, md = waterdata.get_samples(
+/tmp/ipykernel_9152/2092726829.py:12: DeprecationWarning: The &#39;activityStartDateUpper&#39; argument is deprecated and will be removed in a future release; use &#39;activity_start_date_upper&#39; instead.
+  dfLong, md = waterdata.get_samples(
+/tmp/ipykernel_9152/2092726829.py:12: DeprecationWarning: The &#39;usgsPCode&#39; argument is deprecated and will be removed in a future release; use &#39;usgs_pcode&#39; instead.
+  dfLong, md = waterdata.get_samples(
+/tmp/ipykernel_9152/2092726829.py:12: DeprecationWarning: The &#39;monitoringLocationIdentifier&#39; argument is deprecated and will be removed in a future release; use &#39;monitoring_location_id&#39; instead.
+  dfLong, md = waterdata.get_samples(
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">siteNumber &lt;- &#39;01594440&#39;</span>
+<span class="sd">peakData &lt;- readNWISpeak(siteNumber)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">peakData</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-01594440&quot;</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">RateLimited</span>                               Traceback (most recent call last)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:655</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.track</span><span class="ansi-blue-fg">(index, args)</span>
+<span class="ansi-green-fg">    654</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;One sub-request (with retry) + result-store + progress tick.&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">655</span> result = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _retry(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span>: fetch_gated(args), <span style="color: rgb(0,135,0)">self</span>.retry_policy)
+<span class="ansi-green-fg">    656</span> <span style="color: rgb(0,135,0)">self</span>._chunks[index] = result
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/retry.py:338</span>, in <span class="ansi-cyan-fg">_retry</span><span class="ansi-blue-fg">(afn, policy)</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> afn()
+<span class="ansi-green-fg">    339</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">Exception</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> exc:  <span style="color: rgb(95,135,135)"># noqa: BLE001 — re-raised unless retryable</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:649</span>, in <span class="ansi-cyan-fg">ChunkedCall._run.&lt;locals&gt;.fetch_gated</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    648</span> <span class="ansi-bold" style="color: rgb(0,135,0)">async</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> semaphore:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">649</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> <span style="color: rgb(0,135,0)">self</span>.fetch(args)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:942</span>, in <span class="ansi-cyan-fg">_fetch_once</span><span class="ansi-blue-fg">(args)</span>
+<span class="ansi-green-fg">    941</span> req = _construct_api_requests(**args)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">942</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _walk_pages(geopd=GEOPANDAS, req=req)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:816</span>, in <span class="ansi-cyan-fg">_walk_pages</span><span class="ansi-blue-fg">(geopd, req, client)</span>
+<span class="ansi-green-fg">    814</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.request(method, cursor, headers=headers, content=content)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">816</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> _paginate(
+<span class="ansi-green-fg">    817</span>     req,
+<span class="ansi-green-fg">    818</span>     parse_response=functools.partial(_ogc_parse_response, geopd=geopd),
+<span class="ansi-green-fg">    819</span>     follow_up=follow_up,
+<span class="ansi-green-fg">    820</span>     client=client,
+<span class="ansi-green-fg">    821</span> )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:695</span>, in <span class="ansi-cyan-fg">_paginate</span><span class="ansi-blue-fg">(initial_req, parse_response, follow_up, client, raise_for_status)</span>
+<span class="ansi-green-fg">    694</span> resp = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> sess.send(initial_req)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span> <span class="ansi-black-fg ansi-yellow-bg">raise_for_status</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">resp</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    696</span> initial_response = resp
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/errors.py:127</span>, in <span class="ansi-cyan-fg">_raise_for_non_200</span><span class="ansi-blue-fg">(resp)</span>
+<span class="ansi-green-fg">    126</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">127</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> error_for_status(
+<span class="ansi-green-fg">    128</span>     status,
+<span class="ansi-green-fg">    129</span>     _error_body(resp),
+<span class="ansi-green-fg">    130</span>     retry_after=_parse_retry_after(resp.headers.get(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Retry-After</span><span class="ansi-yellow-fg">&#34;</span>)),
+<span class="ansi-green-fg">    131</span> )
+
+<span class="ansi-red-fg">RateLimited</span>: 429: Too many requests made. Please obtain an API token or try again later.
+
+The above exception was the direct cause of the following exception:
+
+<span class="ansi-red-fg">QuotaExhausted</span>                            Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 5</span>
+<span class="ansi-green-fg">      1</span> &#34;&#34;&#34;
+<span class="ansi-green-fg">      2</span> siteNumber &lt;- <span class="ansi-yellow-fg">&#39;01594440&#39;</span>
+<span class="ansi-green-fg">      3</span> peakData &lt;- readNWISpeak(siteNumber)
+<span class="ansi-green-fg">      4</span> &#34;&#34;&#34;
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> peakData, md = waterdata.get_peaks(
+<span class="ansi-green-fg">      6</span>     monitoring_location_id=<span class="ansi-yellow-fg">&#34;USGS-01594440&#34;</span>, parameter_code=<span class="ansi-yellow-fg">&#34;00060&#34;</span>
+<span class="ansi-green-fg">      7</span> )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/api.py:2252</span>, in <span class="ansi-cyan-fg">get_peaks</span><span class="ansi-blue-fg">(monitoring_location_id, parameter_code, time_series_id, unit_of_measure, time, last_modified, water_year, year, month, day, peak_since, properties, skip_geometry, bbox, limit, filter, filter_lang, convert_type, max_rows, **queryables)</span>
+<span class="ansi-green-fg">   2248</span> service = <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">peaks</span><span class="ansi-yellow-fg">&#34;</span>
+<span class="ansi-green-fg">   2250</span> args = _get_args(<span style="color: rgb(0,135,0)">locals</span>(), exclude={<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">max_rows</span><span class="ansi-yellow-fg">&#34;</span>})
+<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">2252</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/waterdata/utils.py:251</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows)</span>
+<span class="ansi-green-fg">    249</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> output_id <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    250</span>     output_id = _OUTPUT_ID_BY_SERVICE[service]
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">251</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">engine</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">get_ogc_data</span><span class="ansi-black-fg ansi-yellow-bg">(</span>
+<span class="ansi-green-fg">    252</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    253</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">service</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    254</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">output_id</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    255</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">max_rows</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    256</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">base_url</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">OGC_API_URL</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    257</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">extra_id_cols</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">_EXTRA_ID_COLS</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    258</span> <span class="ansi-black-fg ansi-yellow-bg">    </span><span class="ansi-black-fg ansi-yellow-bg">dialect</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">WATERDATA_DIALECT</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">    259</span> <span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/engine.py:920</span>, in <span class="ansi-cyan-fg">get_ogc_data</span><span class="ansi-blue-fg">(args, service, output_id, max_rows, base_url, extra_id_cols, dialect)</span>
+<span class="ansi-green-fg">    918</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _progress.progress_context(service=service), _row_cap(max_rows):
+<span class="ansi-green-fg">    919</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> _ogc_base_url(base_url), _dialect(dialect):
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">920</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">_fetch_once</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:771</span>, in <span class="ansi-cyan-fg">multi_value_chunked.&lt;locals&gt;.decorator.&lt;locals&gt;.wrapper</span><span class="ansi-blue-fg">(args, finalize)</span>
+<span class="ansi-green-fg">    767</span> retry_policy = RetryPolicy.from_env()
+<span class="ansi-green-fg">    768</span> <span style="color: rgb(95,135,135)"># The concurrency cap is resolved inside ``resume()`` from</span>
+<span class="ansi-green-fg">    769</span> <span style="color: rgb(95,135,135)"># ``API_USGS_CONCURRENT``; ``1`` is a sequential gather,</span>
+<span class="ansi-green-fg">    770</span> <span style="color: rgb(95,135,135)"># ``total &lt;= 1`` a one-element gather — no special branch.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">771</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">ChunkedCall</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">plan</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">fetch</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">retry_policy</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">finalize</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">resume</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:545</span>, in <span class="ansi-cyan-fg">ChunkedCall.resume</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    504</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    505</span> <span class="ansi-yellow-fg">Drive the chunked call to completion and return the combined result.</span>
+<span class="ansi-green-fg">    506</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    536</span> <span class="ansi-yellow-fg">    condition to clear and call ``exc.call.resume()`` again.</span>
+<span class="ansi-green-fg">    537</span> <span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    538</span> <span style="color: rgb(95,135,135)"># Drive inside the snapshot taken at construction (see ``__init__``).</span>
+<span class="ansi-green-fg">    539</span> <span style="color: rgb(95,135,135)"># ``start_blocking_portal`` copies the *calling* context into its</span>
+<span class="ansi-green-fg">    540</span> <span style="color: rgb(95,135,135)"># worker thread, and running here means that calling context is the</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    543</span> <span style="color: rgb(95,135,135)"># even when this is a resume fired long after the original ``with``</span>
+<span class="ansi-green-fg">    544</span> <span style="color: rgb(95,135,135)"># blocks exited.</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">545</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_ctx</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">run</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_resume_in_context</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:555</span>, in <span class="ansi-cyan-fg">ChunkedCall._resume_in_context</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    549</span> concurrency = _read_concurrency_env()
+<span class="ansi-green-fg">    550</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> start_blocking_portal() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> portal:
+<span class="ansi-green-fg">    551</span>     <span style="color: rgb(95,135,135)"># ``portal.call`` returns ``Any`` because ``functools.partial``</span>
+<span class="ansi-green-fg">    552</span>     <span style="color: rgb(95,135,135)"># erases ``_run``&#39;s return type; restore the declared tuple.</span>
+<span class="ansi-green-fg">    553</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(
+<span class="ansi-green-fg">    554</span>         <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">tuple[pd.DataFrame, Any]</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">555</span>         <span class="ansi-black-fg ansi-yellow-bg">portal</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">call</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">functools</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">partial</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">_run</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">concurrency</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">)</span>,
+<span class="ansi-green-fg">    556</span>     )
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:338</span>, in <span class="ansi-cyan-fg">BlockingPortal.call</span><span class="ansi-blue-fg">(self, func, *args)</span>
+<span class="ansi-green-fg">    323</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">call</span>(
+<span class="ansi-green-fg">    324</span>     <span style="color: rgb(0,135,0)">self</span>,
+<span class="ansi-green-fg">    325</span>     func: Callable[[Unpack[PosArgsT]], Awaitable[T_Retval] | T_Retval],
+<span class="ansi-green-fg">    326</span>     *args: Unpack[PosArgsT],
+<span class="ansi-green-fg">    327</span> ) -&gt; T_Retval:
+<span class="ansi-green-fg">    328</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">&#34;&#34;&#34;</span>
+<span class="ansi-green-fg">    329</span> <span class="ansi-yellow-fg">    Call the given function in the event loop thread.</span>
+<span class="ansi-green-fg">    330</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    336</span>
+<span class="ansi-green-fg">    337</span> <span class="ansi-yellow-fg">    &#34;&#34;&#34;</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">338</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> cast(T_Retval, <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">start_task_soon</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">func</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">*</span><span class="ansi-black-fg ansi-yellow-bg">args</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>)
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:460</span>, in <span class="ansi-cyan-fg">Future.result</span><span class="ansi-blue-fg">(self, timeout)</span>
+<span class="ansi-green-fg">    458</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> CancelledError()
+<span class="ansi-green-fg">    459</span> <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> <span style="color: rgb(0,135,0)">self</span>._state == FINISHED:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">460</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">__get_result</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">    461</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    462</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">TimeoutError</span>()
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/concurrent/futures/_base.py:402</span>, in <span class="ansi-cyan-fg">Future.__get_result</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">    400</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span>._exception <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    401</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">402</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span style="color: rgb(0,135,0)">self</span>._exception
+<span class="ansi-green-fg">    403</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">finally</span>:
+<span class="ansi-green-fg">    404</span>         <span style="color: rgb(95,135,135)"># Break a reference cycle with the exception in self._exception</span>
+<span class="ansi-green-fg">    405</span>         <span style="color: rgb(0,135,0)">self</span> = <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/anyio/from_thread.py:263</span>, in <span class="ansi-cyan-fg">BlockingPortal._call_func</span><span class="ansi-blue-fg">(self, func, args, kwargs, future)</span>
+<span class="ansi-green-fg">    261</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> CancelScope() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> scope:
+<span class="ansi-green-fg">    262</span>         future.add_done_callback(callback)
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">263</span>         retval = <span class="ansi-bold" style="color: rgb(0,135,0)">await</span> retval_or_awaitable
+<span class="ansi-green-fg">    264</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-fg">    265</span>     retval = retval_or_awaitable
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/hostedtoolcache/Python/3.13.14/x64/lib/python3.13/site-packages/dataretrieval/ogc/chunking.py:695</span>, in <span class="ansi-cyan-fg">ChunkedCall._run</span><span class="ansi-blue-fg">(self, max_concurrent)</span>
+<span class="ansi-green-fg">    693</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> first_transient <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">    694</span>             interrupted, exc = first_transient
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">695</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> interrupted <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">exc</span>
+<span class="ansi-green-fg">    697</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>.finalize(*<span style="color: rgb(0,135,0)">self</span>._combine_raw())
+
+<span class="ansi-red-fg">QuotaExhausted</span>: HTTP 429 after 0/1 sub-requests; catch QuotaExhausted (or ChunkInterrupted) to access .partial_frame or .call.resume() once the rate-limit window has rolled over. Cause: RateLimited: 429: Too many requests made. Please obtain an API token or try again later.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ratingData &lt;- readNWISrating(siteNumber, &quot;base&quot;)</span>
+<span class="sd">attr(ratingData, &quot;RATING&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># get_ratings returns a dict keyed by &quot;&lt;id&gt;.&lt;file_type&gt;.rdb&quot;</span>
+<span class="n">ratings_data</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-01594440&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span>
+<span class="p">)</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">ratings_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Failed to download / parse USGS-01594440.base.rdb: 429: Too many requests made. Please obtain an API token or try again later.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">discharge_stats &lt;- readNWISstat(siteNumbers=c(&quot;02319394&quot;),</span>
+<span class="sd">                   parameterCd=c(&quot;00060&quot;),</span>
+<span class="sd">                   statReportType=&quot;annual&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">discharge_stats</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_stats_date_range</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02319394&quot;</span><span class="p">,</span>
+    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+    <span class="n">computation_type</span><span class="o">=</span><span class="s2">&quot;arithmetic_mean&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: observationIntervals · 1 page · 344 rows
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">siteNumber &lt;- &#39;01594440&#39;</span>
-<span class="sd">peakData &lt;- readNWISpeak(siteNumber)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s1">&#39;01594440&#39;</span>
-<span class="n">peakData</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_discharge_peaks</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># R: readNWISdata(service=&quot;dv&quot;, stateCd=&quot;WI&quot;, parameterCd=&quot;00060&quot;,</span>
+<span class="c1">#                 drainAreaMin=&quot;50&quot;, statCd=&quot;00003&quot;)</span>
+<span class="c1">#</span>
+<span class="c1"># The Water Data API serves daily values per monitoring location. To assemble a</span>
+<span class="c1"># state-wide set, first find the locations (optionally filtering by drainage</span>
+<span class="c1"># area) with waterdata.get_monitoring_locations(state_name=&quot;Wisconsin&quot;, ...),</span>
+<span class="c1"># then pass their ids to waterdata.get_daily(parameter_code=&quot;00060&quot;,</span>
+<span class="c1"># statistic_id=&quot;00003&quot;).</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">ratingData &lt;- readNWISrating(siteNumber, &quot;base&quot;)</span>
-<span class="sd">attr(ratingData, &quot;RATING&quot;)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">ratings_data</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="s1">&#39;01594440&#39;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;surfaceData &lt;- readNWISmeas(siteNumber)&#39;&#39;&#39;</span>
-<span class="n">siteNumber</span> <span class="o">=</span> <span class="s1">&#39;01594440&#39;</span>
-<span class="n">surface_data</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_discharge_measurements</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">siteNumber</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">allegheny &lt;- readNWISuse(stateCd = &quot;Pennsylvania&quot;,</span>
-<span class="sd">                         countyCd = &quot;Allegheny&quot;)</span>
-<span class="sd">national &lt;- readNWISuse(stateCd = NULL,</span>
-<span class="sd">                        countyCd = NULL,</span>
-<span class="sd">                        transform = TRUE)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">allegheny</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_water_use</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;PA&quot;</span><span class="p">,</span> <span class="n">counties</span><span class="o">=</span><span class="s2">&quot;003&quot;</span><span class="p">)</span>
-
-<span class="n">national</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_water_use</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">discharge_stats &lt;- readNWISstat(siteNumbers=c(&quot;02319394&quot;),</span>
-<span class="sd">                   parameterCd=c(&quot;00060&quot;),</span>
-<span class="sd">                   statReportType=&quot;annual&quot;)</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="n">discharge_stats</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="s1">&#39;02319394&#39;</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span> <span class="n">statReportType</span><span class="o">=</span><span class="s1">&#39;annual&#39;</span><span class="p">,</span> <span class="n">statTypeCd</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;&#39;&#39;</span>
-<span class="c1"># specificCond &lt;- readWQPqw(&#39;WIDNR_WQX-10032762&#39;,</span>
-<span class="c1">#                           &#39;Specific conductance&#39;,</span>
-<span class="c1">#                           &#39;2011-05-01&#39;,&#39;2011-09-30&#39;)</span>
-<span class="c1"># &#39;&#39;&#39;</span>
-<span class="c1"># specific_cond, md = wqp.get_results(siteid=&#39;WIDNR_WQX-10032762&#39;,</span>
-<span class="c1">#                           characteristicName = &#39;Specific conductance&#39;,</span>
-<span class="c1">#                           startDateLo=&#39;2011-05-01&#39;, startDateHi=&#39;2011-09-30&#39;)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;&#39;&#39;</span>
-<span class="c1"># dischargeWI &lt;- readNWISdata(service=&quot;dv&quot;,</span>
-<span class="c1">#                            stateCd=&quot;WI&quot;,</span>
-<span class="c1">#                            parameterCd=&quot;00060&quot;,</span>
-<span class="c1">#                            drainAreaMin=&quot;50&quot;,</span>
-<span class="c1">#                            statCd=&quot;00003&quot;)</span>
-<span class="c1"># &#39;&#39;&#39;</span>
-<span class="c1"># dischargeWI, md = nwis.get_dv(stateCd=&quot;WI&quot;, parameterCd=&quot;00060&quot;, drainAreaMin=&quot;50&quot;, statCd=&quot;00003&quot;)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;&#39;&#39;</span>
@@ -476,7 +848,7 @@ The above exception was the direct cause of the following exception:
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;&#39;&#39;</span>
@@ -488,7 +860,7 @@ The above exception was the direct cause of the following exception:
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;&#39;&#39;</span>
@@ -501,50 +873,47 @@ The above exception was the direct cause of the following exception:
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;site &lt;- whatWQPsamples(siteid=&quot;USGS-01594440&quot;)&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;site &lt;- whatWQPsamples(siteid=&quot;USGS-01594440&quot;)&quot;&quot;&quot;</span>
 
 <span class="n">site</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">wqp</span><span class="o">.</span><span class="n">what_sites</span><span class="p">(</span><span class="n">siteid</span><span class="o">=</span><span class="s2">&quot;USGS-01594440&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">type &lt;- &quot;Stream&quot;</span>
 <span class="sd">sites &lt;- whatWQPmetrics(countycode=&quot;US:55:025&quot;,siteType=type)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="n">streamType</span> <span class="o">=</span> <span class="s2">&quot;Stream&quot;</span>
-<span class="n">sites</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">wqp</span><span class="o">.</span><span class="n">what_sites</span><span class="p">(</span><span class="n">countycode</span><span class="o">=</span><span class="s2">&quot;US:55:025&quot;</span><span class="p">,</span><span class="n">siteType</span><span class="o">=</span><span class="n">streamType</span><span class="p">)</span>
+<span class="n">sites</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">wqp</span><span class="o">.</span><span class="n">what_sites</span><span class="p">(</span><span class="n">countycode</span><span class="o">=</span><span class="s2">&quot;US:55:025&quot;</span><span class="p">,</span> <span class="n">siteType</span><span class="o">=</span><span class="n">streamType</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="Embedded-Metadata">
 <h1>Embedded Metadata<a class="headerlink" href="#Embedded-Metadata" title="Link to this heading"></a></h1>
-<p>All service methods return the DataFrame containing requested data and Metadata as a tuple. Note, a call using get_record will only return the DataFrame to remain compatible with previous usage.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>national, md = nwis.get_water_use()
-</pre></div>
-</div>
-<p>md is an object with the following attributes</p>
+<p>Most <code class="docutils literal notranslate"><span class="pre">waterdata</span></code> and <code class="docutils literal notranslate"><span class="pre">wqp</span></code> service methods return a tuple of the requested data (a pandas DataFrame) and a metadata object.</p>
+<p><code class="docutils literal notranslate"><span class="pre">md</span></code> is an object with the following attributes:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Metadata
-    url # the resulting url to query usgs
-    query_time # the time it took to query usgs
-    site_info # a method to call site_info with the site parameters supplied
-    header # any headers attached to the response object
+    url         # the URL used to query the service
+    query_time  # how long the query took
+    header      # the response headers
 </pre></div>
 </div>
+<p>Note: USGS <em>water use</em> data has no Water Data API equivalent yet. The legacy <code class="docutils literal notranslate"><span class="pre">nwis.get_water_use()</span></code> service has been decommissioned and now raises a “defunct” error, so there is currently no runnable way to retrieve water-use data through <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code>.</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="nwisdemo01.html" class="btn btn-neutral float-left" title="National trends in peak annual streamflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="peak_streamflow_trends.html" class="btn btn-neutral float-left" title="National trends in peak annual streamflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../meta/contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

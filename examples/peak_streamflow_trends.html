@@ -1,0 +1,611 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>National trends in peak annual streamflow &mdash; dataretrieval 0.1.dev1+gd2920217d documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=b530e927"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Python Equivalents to R Vignette Examples" href="rvignettes.html" />
+    <link rel="prev" title="USGS dataretrieval Python Package Water Use Examples" href="USGS_NWIS_WaterUse_Examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            dataretrieval
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../meta/installing.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#introduction-to-the-waterdata-module-of-dataretrieval">Introduction to the <code class="docutils literal notranslate"><span class="pre">waterdata</span></code> module of <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#usgs-water-data-api-vignettes">USGS Water Data API vignettes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#simple-uses-of-the-dataretrieval-package">Simple uses of the <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code> package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#example-notebooks-from-hydroshare">Example Notebooks from Hydroshare</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#using-dataretrieval-to-obtain-nation-trends-in-peak-annual-streamflow">Using <code class="docutils literal notranslate"><span class="pre">dataretrieval</span></code> to obtain nation trends in peak annual streamflow</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">National trends in peak annual streamflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Setup">Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Basic-usage">Basic usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Preparing-the-regression">Preparing the regression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Preparing-the-analysis">Preparing the analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Plotting-the-results">Plotting the results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#duplicating-the-r-dataretrieval-vignettes-functionality">Duplicating the R <code class="docutils literal notranslate"><span class="pre">dataRetrieval</span></code> vignettes functionality</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../meta/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../meta/license.html">License and Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">dataretrieval</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">National trends in peak annual streamflow</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/peak_streamflow_trends.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="National-trends-in-peak-annual-streamflow">
+<h1>National trends in peak annual streamflow<a class="headerlink" href="#National-trends-in-peak-annual-streamflow" title="Link to this heading"></a></h1>
+<section id="Introduction">
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Link to this heading"></a></h2>
+<p>This notebook demonstrates a slightly more advanced application of the <code class="docutils literal notranslate"><span class="pre">dataretrieval.waterdata</span></code> module: assembling a dataset of historical annual peak streamflow and regressing peak discharge against time to look for trends — not at a single station, but across many.</p>
+</section>
+<section id="Setup">
+<h2>Setup<a class="headerlink" href="#Setup" title="Link to this heading"></a></h2>
+<p>Before we begin any analysis, we’ll need to set up our environment by importing a few modules.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">waterdata</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Basic-usage">
+<h2>Basic usage<a class="headerlink" href="#Basic-usage" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">waterdata</span></code> module is the recommended interface to USGS water data and replaces the deprecated <code class="docutils literal notranslate"><span class="pre">nwis</span></code> module. Annual peak streamflow is retrieved with <code class="docutils literal notranslate"><span class="pre">waterdata.get_peaks()</span></code>, which returns a <code class="docutils literal notranslate"><span class="pre">pandas</span></code> data frame and a metadata object. To get started we need a monitoring location ID, a parameter code, and (optionally) a time window.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download annual peaks (discharge, parameter 00060) from a single site</span>
+<span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
+    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-03339000&quot;</span><span class="p">,</span>
+    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;1970-01-01/..&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: peaks · 1 page · 56 rows
+No API key detected — register for higher rate limits at https://api.waterdata.usgs.gov/signup/
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>geometry</th>
+      <th>time_series_id</th>
+      <th>monitoring_location_id</th>
+      <th>parameter_code</th>
+      <th>unit_of_measure</th>
+      <th>value</th>
+      <th>last_modified</th>
+      <th>time</th>
+      <th>water_year</th>
+      <th>year</th>
+      <th>month</th>
+      <th>day</th>
+      <th>time_of_day</th>
+      <th>peak_since</th>
+      <th>qualifier</th>
+      <th>peak_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>POINT (-87.59761 40.10108)</td>
+      <td>1587ac4ee41d4f6b9debe9724e8ddb79</td>
+      <td>USGS-03339000</td>
+      <td>00060</td>
+      <td>ft^3/s</td>
+      <td>16300</td>
+      <td>2026-04-28 09:40:12.927288+00:00</td>
+      <td>1970-04-20</td>
+      <td>1970</td>
+      <td>1970</td>
+      <td>4</td>
+      <td>20</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>[UNKNOWNREGULATION]</td>
+      <td>5282b66f-ee19-43d9-b772-936da66a968d</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>POINT (-87.59761 40.10108)</td>
+      <td>1587ac4ee41d4f6b9debe9724e8ddb79</td>
+      <td>USGS-03339000</td>
+      <td>00060</td>
+      <td>ft^3/s</td>
+      <td>8910</td>
+      <td>2026-04-28 09:40:12.927288+00:00</td>
+      <td>1971-02-05</td>
+      <td>1971</td>
+      <td>1971</td>
+      <td>2</td>
+      <td>5</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>[UNKNOWNREGULATION]</td>
+      <td>935a7d88-6e6c-4b80-b6a2-20b909d6e67f</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>POINT (-87.59761 40.10108)</td>
+      <td>1587ac4ee41d4f6b9debe9724e8ddb79</td>
+      <td>USGS-03339000</td>
+      <td>00060</td>
+      <td>ft^3/s</td>
+      <td>9240</td>
+      <td>2026-04-28 09:40:12.927288+00:00</td>
+      <td>1972-04-22</td>
+      <td>1972</td>
+      <td>1972</td>
+      <td>4</td>
+      <td>22</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>[UNKNOWNREGULATION]</td>
+      <td>69975ecd-959a-46bc-a221-815c947a76b6</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>POINT (-87.59761 40.10108)</td>
+      <td>1587ac4ee41d4f6b9debe9724e8ddb79</td>
+      <td>USGS-03339000</td>
+      <td>00060</td>
+      <td>ft^3/s</td>
+      <td>16600</td>
+      <td>2026-04-28 09:40:12.927288+00:00</td>
+      <td>1973-04-23</td>
+      <td>1973</td>
+      <td>1973</td>
+      <td>4</td>
+      <td>23</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>[UNKNOWNREGULATION]</td>
+      <td>55fc2bdd-fc45-44d5-b291-6767e5e44ff6</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>POINT (-87.59761 40.10108)</td>
+      <td>1587ac4ee41d4f6b9debe9724e8ddb79</td>
+      <td>USGS-03339000</td>
+      <td>00060</td>
+      <td>ft^3/s</td>
+      <td>19500</td>
+      <td>2026-04-28 09:40:12.927288+00:00</td>
+      <td>1974-06-23</td>
+      <td>1974</td>
+      <td>1974</td>
+      <td>6</td>
+      <td>23</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>[UNKNOWNREGULATION]</td>
+      <td>c202f21a-a940-418f-92d6-253598a16dd0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>All we require for the trend analysis are the peak date (<code class="docutils literal notranslate"><span class="pre">time</span></code>), the monitoring location ID (<code class="docutils literal notranslate"><span class="pre">monitoring_location_id</span></code>), and the peak streamflow (<code class="docutils literal notranslate"><span class="pre">value</span></code>). The Water Data API returns a flat (single-index) data frame with one row per annual peak.</p>
+</section>
+<section id="Preparing-the-regression">
+<h2>Preparing the regression<a class="headerlink" href="#Preparing-the-regression" title="Link to this heading"></a></h2>
+<p>Next we’ll define a function that applies ordinary least squares to peak discharge versus time. After grouping the dataset by <code class="docutils literal notranslate"><span class="pre">monitoring_location_id</span></code>, we apply the regression per monitoring location. Each location’s result is returned as a row with the slope, y-intercept, p value, and standard error of the regression.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">peak_trend_regression</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="c1"># convert peak dates to days since the first peak for the regression</span>
+    <span class="n">peak_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+    <span class="n">peak_d</span> <span class="o">=</span> <span class="p">(</span><span class="n">peak_date</span> <span class="o">-</span> <span class="n">peak_date</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">)</span>
+
+    <span class="c1"># normalize the peak discharge values</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+    <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">_r_value</span><span class="p">,</span> <span class="n">p_value</span><span class="p">,</span> <span class="n">std_error</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">linregress</span><span class="p">(</span><span class="n">peak_d</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;slope&quot;</span><span class="p">:</span> <span class="n">slope</span><span class="p">,</span>
+            <span class="s2">&quot;intercept&quot;</span><span class="p">:</span> <span class="n">intercept</span><span class="p">,</span>
+            <span class="s2">&quot;p_value&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">,</span>
+            <span class="s2">&quot;std_error&quot;</span><span class="p">:</span> <span class="n">std_error</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Preparing-the-analysis">
+<h2>Preparing the analysis<a class="headerlink" href="#Preparing-the-analysis" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">peak_trend_analysis</span><span class="p">(</span><span class="n">state_names</span><span class="p">,</span> <span class="n">start_date</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    state_names : list</span>
+<span class="sd">        state names to include in the analysis, e.g. [&quot;Illinois&quot;, &quot;Indiana&quot;].</span>
+<span class="sd">    start_date : string</span>
+<span class="sd">        the date to use as the beginning of the analysis (YYYY-MM-DD).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">state_names</span><span class="p">:</span>
+        <span class="c1"># find stream gages in the state (keep the geometry for mapping)</span>
+        <span class="n">sites</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_monitoring_locations</span><span class="p">(</span>
+            <span class="n">state_name</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="n">site_type_code</span><span class="o">=</span><span class="s2">&quot;ST&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># download annual peak discharge for those sites</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
+            <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">sites</span><span class="p">[</span><span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+            <span class="n">time</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start_date</span><span class="si">}</span><span class="s2">/..&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># group the data by site and apply our regression</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">peak_trend_regression</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="c1"># drop any insignificant results</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="n">temp</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">]</span>
+
+        <span class="c1"># join site geometry/metadata with the trend results; GeoDataFrame.merge</span>
+        <span class="c1"># keeps the joined result spatial</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">sites</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">temp</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;monitoring_location_id&quot;</span>
+        <span class="p">)</span>
+        <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Running the analysis for every state since 1970 would pull a large amount of data from the Water Data API and could burden the service. To keep this demo light, we run a single small state — Rhode Island — below.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download peak discharge for every stream gage in Rhode Island and run the</span>
+<span class="c1"># trend regression on each. For larger states the async chunker (default</span>
+<span class="c1"># concurrency 16) automatically fans the ``get_peaks`` call across many sites;</span>
+<span class="c1"># Rhode Island is small enough to return in a single request.</span>
+<span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;1970-01-01&quot;</span>
+<span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Rhode Island&quot;</span><span class="p">]</span>
+<span class="n">final_df</span> <span class="o">=</span> <span class="n">peak_trend_analysis</span><span class="p">(</span><span class="n">state_names</span><span class="o">=</span><span class="n">states</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
+<span class="n">final_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Retrieving: monitoring-locations · 1 page · 351 rows
+Retrieving: peaks · 1 page · 1,308 rows
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>monitoring_location_id</th>
+      <th>geometry</th>
+      <th>agency_code</th>
+      <th>agency_name</th>
+      <th>monitoring_location_number</th>
+      <th>monitoring_location_name</th>
+      <th>district_code</th>
+      <th>country_code</th>
+      <th>country_name</th>
+      <th>state_code</th>
+      <th>...</th>
+      <th>well_constructed_depth</th>
+      <th>hole_constructed_depth</th>
+      <th>depth_source_code</th>
+      <th>revision_note</th>
+      <th>revision_created</th>
+      <th>revision_modified</th>
+      <th>slope</th>
+      <th>intercept</th>
+      <th>p_value</th>
+      <th>std_error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>USGS-01114000</td>
+      <td>POINT (-71.41061 41.83399)</td>
+      <td>USGS</td>
+      <td>U.S. Geological Survey</td>
+      <td>01114000</td>
+      <td>MOSHASSUCK RIVER AT PROVIDENCE, RI</td>
+      <td>25</td>
+      <td>US</td>
+      <td>United States of America</td>
+      <td>44</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>WDR MA-RI, water years 1964-1973, annual peak ...</td>
+      <td>2017-11-13T06:00:00+00:00</td>
+      <td>2022-04-07T14:31:13.870000+00:00</td>
+      <td>0.000059</td>
+      <td>-0.588666</td>
+      <td>0.008529</td>
+      <td>0.000022</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>USGS-01115098</td>
+      <td>POINT (-71.60618 41.8526)</td>
+      <td>USGS</td>
+      <td>U.S. Geological Survey</td>
+      <td>01115098</td>
+      <td>PEEPTOAD BROOK AT ELMDALE RD NR NORTH SCITUATE...</td>
+      <td>25</td>
+      <td>US</td>
+      <td>United States of America</td>
+      <td>44</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>WDR MA-RI-03-01: Drainage area.</td>
+      <td>2017-11-13T06:00:00+00:00</td>
+      <td>NaN</td>
+      <td>0.000153</td>
+      <td>-0.846482</td>
+      <td>0.003592</td>
+      <td>0.000048</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>USGS-01115200</td>
+      <td>POINT (-71.75035 41.83121)</td>
+      <td>USGS</td>
+      <td>U.S. Geological Survey</td>
+      <td>01115200</td>
+      <td>SHIPPEE BROOK TRIBUTARY AT NORTH FOSTER, RI</td>
+      <td>25</td>
+      <td>US</td>
+      <td>United States of America</td>
+      <td>44</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.001714</td>
+      <td>1.103788</td>
+      <td>0.000945</td>
+      <td>0.000130</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>USGS-01117250</td>
+      <td>POINT (-71.53944 41.43222)</td>
+      <td>USGS</td>
+      <td>U.S. Geological Survey</td>
+      <td>01117250</td>
+      <td>BROWNS BROOK AT WAKEFIELD, RI</td>
+      <td>25</td>
+      <td>US</td>
+      <td>United States of America</td>
+      <td>44</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>None</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.001486</td>
+      <td>1.175513</td>
+      <td>0.044431</td>
+      <td>0.000445</td>
+    </tr>
+  </tbody>
+</table>
+<p>4 rows × 48 columns</p>
+</div></div>
+</div>
+<p>The cell above ran the full analysis for a single small state (Rhode Island) and returned <code class="docutils literal notranslate"><span class="pre">final_df</span></code> — one row per gage whose peak-discharge trend is statistically significant (<code class="docutils literal notranslate"><span class="pre">p_value</span> <span class="pre">&lt;</span> <span class="pre">0.05</span></code>), carrying the regression slope, intercept, p-value, and standard error.</p>
+<p><code class="docutils literal notranslate"><span class="pre">final_df</span></code> pairs each station’s trend statistics with its monitoring-location metadata (<code class="docutils literal notranslate"><span class="pre">monitoring_location_id</span></code>, <code class="docutils literal notranslate"><span class="pre">state_name</span></code>, <code class="docutils literal notranslate"><span class="pre">site_type_code</span></code>, …) and, because we kept the locations’ geometry, a <code class="docutils literal notranslate"><span class="pre">geometry</span></code> column of point coordinates — so we can map the results directly.</p>
+</section>
+<section id="Plotting-the-results">
+<h2>Plotting the results<a class="headerlink" href="#Plotting-the-results" title="Link to this heading"></a></h2>
+<p>Because <code class="docutils literal notranslate"><span class="pre">final_df</span></code> is a <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code>, we can map the results directly with geopandas and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> — no extra basemap stack required. Monitoring locations with increasing peak annual discharge are shown in red, and those with decreasing peaks in blue.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># final_df is a GeoDataFrame, so its station points plot directly.</span>
+<span class="n">increasing</span> <span class="o">=</span> <span class="n">final_df</span><span class="p">[</span><span class="n">final_df</span><span class="p">[</span><span class="s2">&quot;slope&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">decreasing</span> <span class="o">=</span> <span class="n">final_df</span><span class="p">[</span><span class="n">final_df</span><span class="p">[</span><span class="s2">&quot;slope&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">increasing</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+    <span class="n">increasing</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;increasing&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">decreasing</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+    <span class="n">decreasing</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;decreasing&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Peak annual streamflow trends (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Longitude&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Latitude&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_peak_streamflow_trends_15_0.png" src="../_images/examples_peak_streamflow_trends_15_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="USGS_NWIS_WaterUse_Examples.html" class="btn btn-neutral float-left" title="USGS dataretrieval Python Package Water Use Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rvignettes.html" class="btn btn-neutral float-right" title="Python Equivalents to R Vignette Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

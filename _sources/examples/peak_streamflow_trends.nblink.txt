@@ -1,0 +1,3 @@
+{
+    "path": "../../../demos/peak_streamflow_trends.ipynb"
+}

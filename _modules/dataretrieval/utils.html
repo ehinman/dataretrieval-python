@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.utils &mdash; dataretrieval 0.1.dev1+g4dc9f6a68 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+  <title>dataretrieval.utils &mdash; dataretrieval 0.1.dev1+gd2920217d documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=bb1e5188"></script>
+      <script src="../../_static/documentation_options.js?v=b530e927"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -78,18 +78,151 @@
 <span class="sd">Useful utilities for data munging.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextvars</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextVar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
 
-<span class="kn">import</span> <span class="nn">dataretrieval</span>
-<span class="kn">from</span> <span class="nn">dataretrieval.codes</span> <span class="kn">import</span> <span class="n">tz</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">dataretrieval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">tz</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">NetworkError</span><span class="p">,</span>
+    <span class="n">NoSitesError</span><span class="p">,</span>
+    <span class="n">URLTooLong</span><span class="p">,</span>
+    <span class="n">error_for_status</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Typed as ``dict[str, Any]`` (not the inferred ``dict[str, object]``) so that</span>
+<span class="c1"># splatting it as ``**HTTPX_DEFAULTS`` into ``httpx.get`` / ``httpx.AsyncClient``</span>
+<span class="c1"># type-checks: the values are a heterogeneous bag of httpx keyword arguments.</span>
+<span class="n">HTTPX_DEFAULTS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;follow_redirects&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Timeout</span><span class="p">(</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">connect</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">_T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_T&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Ambient">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.Ambient">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Ambient</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">_T</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A :class:`~contextvars.ContextVar` paired with a scoping contextmanager.</span>
+
+<span class="sd">    Bundles the var and its set/reset-token dance into one object, so an ambient</span>
+<span class="sd">    value needs a single declaration instead of a ``var`` + setter-function pair.</span>
+<span class="sd">    Read the current value with :meth:`get`; set it for a ``with`` block by</span>
+<span class="sd">    *calling* the instance — the previous value is restored on exit (and can&#39;t</span>
+<span class="sd">    leak into a later call the way a hand-written ``try/finally`` can when its</span>
+<span class="sd">    ``reset`` is dropped)::</span>
+
+<span class="sd">        _base_url = Ambient(&quot;ogc_base_url&quot;, DEFAULT)</span>
+<span class="sd">        with _base_url(other):  # scoped to the block</span>
+<span class="sd">            _base_url.get()  # -&gt; other</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Ambient.__init__">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.Ambient.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">_T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">:</span> <span class="n">ContextVar</span><span class="p">[</span><span class="n">_T</span><span class="p">]</span> <span class="o">=</span> <span class="n">ContextVar</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Ambient.get">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.Ambient.get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current value — the default outside any active scope.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Ambient.__call__">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.Ambient.__call__">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the value for the duration of the ``with`` block.&quot;&quot;&quot;</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="_require_positive_int">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._require_positive_int">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_require_positive_int</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">examples</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate that ``value`` is a positive integer, else raise ``ValueError``.</span>
+
+<span class="sd">    Accepts any :class:`numbers.Integral` (so a numpy/pandas integer passes,</span>
+<span class="sd">    not only ``int``) but rejects ``bool`` — an ``Integral`` subtype that is</span>
+<span class="sd">    nonsensical as a count. A non-integer (float, str, ``None``) or a value</span>
+<span class="sd">    ``&lt; 1`` raises before any I/O, rather than crashing later (e.g. deep in</span>
+<span class="sd">    ``pd.DataFrame.head``). Shared by the user-facing count knobs ``max_rows``</span>
+<span class="sd">    and ``parallel_chunks(n)`` so their boundary validation can&#39;t drift.</span>
+<span class="sd">    (``ChunkPlan.max_chunks`` is an internal, already-``int`` precondition with</span>
+<span class="sd">    its own domain-specific message, so it keeps a lighter ``&lt; 1`` guard rather</span>
+<span class="sd">    than routing through here.)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value : int</span>
+<span class="sd">        The value to check. Typed ``int`` for callers, but validated at</span>
+<span class="sd">        runtime because the real value may be anything the user passed.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Parameter name, used as the subject of the error message.</span>
+<span class="sd">    examples : str, optional</span>
+<span class="sd">        Illustrative values appended to the message (e.g. ``&quot;2, 8, 32&quot;``).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">eg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;, e.g. </span><span class="si">{</span><span class="n">examples</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">examples</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a positive integer</span><span class="si">{</span><span class="n">eg</span><span class="si">}</span><span class="s2"> (got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">).&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_default_headers">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._default_headers">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_headers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the default HTTP headers for a USGS web-API request.</span>
+
+<span class="sd">    Always sets a descriptive ``User-Agent`` plus ``Accept`` /</span>
+<span class="sd">    ``Accept-Encoding`` and ``lang``. If the ``API_USGS_PAT`` environment</span>
+<span class="sd">    variable is set, its value is added as the ``X-Api-Key`` header — a USGS</span>
+<span class="sd">    personal access token raises the request rate limit.</span>
+
+<span class="sd">    Shared by the OGC engine (:mod:`dataretrieval.ogc`), the Water Data getters</span>
+<span class="sd">    (:mod:`dataretrieval.waterdata`), and :mod:`dataretrieval.wateruse`, so the</span>
+<span class="sd">    request identity is consistent across every USGS API the package talks to.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict[str, str]</span>
+<span class="sd">        Headers suitable for an ``httpx`` request against a USGS API.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Accept-Encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;compress, gzip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;python-dataretrieval/</span><span class="si">{</span><span class="n">dataretrieval</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lang&quot;</span><span class="p">:</span> <span class="s2">&quot;en-US&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;API_USGS_PAT&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">token</span><span class="p">:</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;X-Api-Key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span>
+    <span class="k">return</span> <span class="n">headers</span></div>
+
 
 
 <div class="viewcode-block" id="to_str">
 <a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.to_str">[docs]</a>
-<span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">listlike</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_str</span><span class="p">(</span><span class="n">listlike</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Translates list-like objects into strings.</span>
 
 <span class="sd">    Parameters</span>
@@ -117,23 +250,21 @@
 <span class="sd">        &#39;0+10+42&#39;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">listlike</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listlike</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">listlike</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">listlike</span>
 
-    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">listlike</span><span class="p">)</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">listlike</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">listlike</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">listlike</span><span class="p">))</span>
 
-    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">listlike</span><span class="p">)</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">listlike</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-
-    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">listlike</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">listlike</span></div>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 
 
 <div class="viewcode-block" id="format_datetime">
 <a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.format_datetime">[docs]</a>
-<span class="k">def</span> <span class="nf">format_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">date_field</span><span class="p">,</span> <span class="n">time_field</span><span class="p">,</span> <span class="n">tz_field</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_datetime</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">date_field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time_field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tz_field</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a datetime field from separate date, time, and</span>
 <span class="sd">    time zone fields.</span>
 
@@ -161,7 +292,7 @@
 
     <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
         <span class="n">df</span><span class="p">[</span><span class="n">date_field</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="n">time_field</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="n">tz_field</span><span class="p">],</span>
-        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;ISO8601&quot;</span><span class="p">,</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mixed&quot;</span><span class="p">,</span>
         <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -172,50 +303,155 @@
             <span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> incomplete dates found, &quot;</span>
             <span class="o">+</span> <span class="s2">&quot;consider setting datetime_index to False.&quot;</span><span class="p">,</span>
             <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 
 
 
+<span class="c1"># (time-suffix, tz-suffix) pairs that follow a &quot;&lt;prefix&gt;Date&quot; column.</span>
+<span class="n">_TIME_TZ_SUFFIXES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="c1"># WQX3 / Samples, e.g.</span>
+    <span class="c1">#   Activity_StartDate / Activity_StartTime / Activity_StartTimeZone</span>
+    <span class="p">(</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="s2">&quot;TimeZone&quot;</span><span class="p">),</span>
+    <span class="c1"># Legacy WQP (slash-separated), e.g.</span>
+    <span class="c1">#   ActivityStartDate / ActivityStartTime/Time / ActivityStartTime/TimeZoneCode</span>
+    <span class="p">(</span><span class="s2">&quot;Time/Time&quot;</span><span class="p">,</span> <span class="s2">&quot;Time/TimeZoneCode&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="_build_utc_datetime">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._build_utc_datetime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_utc_datetime</span><span class="p">(</span>
+    <span class="n">date_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">time_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">tz_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine date + time + tz-abbreviation columns into a UTC pandas Series.</span>
+
+<span class="sd">    Unknown timezone codes (and rows missing any of the three values) yield</span>
+<span class="sd">    ``NaT``. The input columns are not mutated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">tz_series</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">tz</span><span class="p">)</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">date_series</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+        <span class="o">+</span> <span class="n">time_series</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+        <span class="o">+</span> <span class="n">offsets</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="n">combined</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S %z&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_attach_datetime_columns">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._attach_datetime_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_attach_datetime_columns</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add ``&lt;prefix&gt;DateTime`` UTC columns for any Date/Time/TimeZone triplets</span>
+<span class="sd">    and sort the frame by the activity-start datetime.</span>
+
+<span class="sd">    Detects two naming patterns that appear in USGS Samples and Water Quality</span>
+<span class="sd">    Portal CSV responses:</span>
+
+<span class="sd">    * **WQX3** — ``&lt;prefix&gt;Date``, ``&lt;prefix&gt;Time``, ``&lt;prefix&gt;TimeZone``</span>
+<span class="sd">    * **Legacy WQP** — ``&lt;prefix&gt;Date``, ``&lt;prefix&gt;Time/Time``,</span>
+<span class="sd">      ``&lt;prefix&gt;Time/TimeZoneCode``</span>
+
+<span class="sd">    For every triplet present, a new ``&lt;prefix&gt;DateTime`` column is appended</span>
+<span class="sd">    holding a UTC ``Timestamp`` (offsets resolved via</span>
+<span class="sd">    :data:`dataretrieval.codes.tz`). The original Date/Time/TimeZone columns</span>
+<span class="sd">    are left intact, and an existing ``&lt;prefix&gt;DateTime`` column is never</span>
+<span class="sd">    overwritten.</span>
+
+<span class="sd">    Rows are sorted (and the index reset) by the canonical activity-start</span>
+<span class="sd">    datetime when present — ``Activity_StartDateTime`` (WQX3) or</span>
+<span class="sd">    ``ActivityStartDateTime`` (legacy WQP) — falling back to the first</span>
+<span class="sd">    detected ``*Date`` column. Mirrors R ``dataRetrieval``&#39;s</span>
+<span class="sd">    end-of-pipeline sort in ``importWQP.R``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : ``pandas.DataFrame``</span>
+<span class="sd">        DataFrame returned from a Samples or WQP CSV endpoint.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df : ``pandas.DataFrame``</span>
+<span class="sd">        A new DataFrame with derivable ``&lt;prefix&gt;DateTime`` columns appended</span>
+<span class="sd">        and rows sorted by the activity-start datetime (if any date column</span>
+<span class="sd">        was detected).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">new_columns</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">first_date_col</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">col</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">first_date_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">first_date_col</span> <span class="o">=</span> <span class="n">col</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;DateTime&quot;</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">columns</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">new_columns</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">time_suffix</span><span class="p">,</span> <span class="n">tz_suffix</span> <span class="ow">in</span> <span class="n">_TIME_TZ_SUFFIXES</span><span class="p">:</span>
+            <span class="n">time_col</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">time_suffix</span>
+            <span class="n">tz_col</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">tz_suffix</span>
+            <span class="k">if</span> <span class="n">time_col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="ow">and</span> <span class="n">tz_col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">new_columns</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">_build_utc_datetime</span><span class="p">(</span>
+                    <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">time_col</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">tz_col</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="k">break</span>
+    <span class="k">if</span> <span class="n">new_columns</span><span class="p">:</span>
+        <span class="c1"># Concat in one shot — per-column assignment on a wide CSV-derived</span>
+        <span class="c1"># frame triggers pandas&#39; fragmentation PerformanceWarning.</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">new_columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sort_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s2">&quot;Activity_StartDateTime&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">sort_key</span> <span class="o">=</span> <span class="s2">&quot;Activity_StartDateTime&quot;</span>
+    <span class="k">elif</span> <span class="s2">&quot;ActivityStartDateTime&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">sort_key</span> <span class="o">=</span> <span class="s2">&quot;ActivityStartDateTime&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sort_key</span> <span class="o">=</span> <span class="n">first_date_col</span>
+    <span class="k">if</span> <span class="n">sort_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">sort_key</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+
 <div class="viewcode-block" id="BaseMetadata">
 <a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.BaseMetadata">[docs]</a>
-<span class="k">class</span> <span class="nc">BaseMetadata</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseMetadata</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for metadata.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    url : str</span>
 <span class="sd">        Response url</span>
-<span class="sd">    query_time: datetme.timedelta</span>
+<span class="sd">    query_time: datetime.timedelta</span>
 <span class="sd">        Response elapsed time</span>
-<span class="sd">    header: requests.structures.CaseInsensitiveDict</span>
+<span class="sd">    header: httpx.Headers</span>
 <span class="sd">        Response headers</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseMetadata.__init__">
 <a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.BaseMetadata.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates a standard set of metadata informed by the response.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        response: Response</span>
-<span class="sd">            Response object from requests module</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        md: :obj:`dataretrieval.utils.BaseMetadata`</span>
-<span class="sd">            A ``dataretrieval`` custom :obj:`dataretrieval.utils.BaseMetadata` object.</span>
+<span class="sd">        response: ``httpx.Response``</span>
+<span class="sd">            Response object from the ``httpx`` module.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># These are built from the API response</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span>
+        <span class="c1"># Coerce httpx.URL -&gt; str: BaseMetadata.url has always been str.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">query_time</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">elapsed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
         <span class="c1"># # not sure what statistic_info is</span>
@@ -224,76 +460,24 @@
         <span class="c1"># # disclaimer seems to be only part of importWaterML1</span>
         <span class="c1"># self.disclaimer = None</span>
 
-    <span class="c1"># These properties are to be set by `nwis` or `wqp`-specific metadata classes.</span>
+    <span class="c1"># ``site_info`` is set by ``nwis`` / ``wqp``-specific metadata classes; the</span>
+    <span class="c1"># modern ``waterdata`` metadata leaves it unimplemented (use</span>
+    <span class="c1"># ``waterdata.get_monitoring_locations`` to retrieve site descriptions).</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">site_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">site_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="s2">&quot;site_info must be implemented by utils.BaseMetadata children&quot;</span>
         <span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">variable_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;variable_info must be implemented by utils.BaseMetadata children&quot;</span>
-        <span class="p">)</span>
-
 <div class="viewcode-block" id="BaseMetadata.__repr__">
 <a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.BaseMetadata.__repr__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(url=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 </div>
 
 
 
-<div class="viewcode-block" id="query">
-<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.query">[docs]</a>
-<span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">ssl_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send a query.</span>
-
-<span class="sd">    Wrapper for requests.get that handles errors, converts listed</span>
-<span class="sd">    query parameters to comma separated strings, and returns response.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    url: string</span>
-<span class="sd">        URL to query</span>
-<span class="sd">    payload: dict</span>
-<span class="sd">        query parameters passed to ``requests.get``</span>
-<span class="sd">    delimiter: string</span>
-<span class="sd">        delimiter to use with lists</span>
-<span class="sd">    ssl_check: bool</span>
-<span class="sd">        If True, check SSL certificates, if False, do not check SSL,</span>
-<span class="sd">        default is True</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    string: query response</span>
-<span class="sd">        The response from the API query ``requests.get`` function call.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">payload</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">payload</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_str</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">)</span>
-    <span class="c1"># for index in range(len(payload)):</span>
-    <span class="c1">#    key, value = payload[index]</span>
-    <span class="c1">#    payload[index] = (key, to_str(value))</span>
-
-    <span class="c1"># define the user agent for the query</span>
-    <span class="n">user_agent</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;user-agent&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;python-dataretrieval/</span><span class="si">{</span><span class="n">dataretrieval</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
-
-    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">user_agent</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_check</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">400</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Bad Request, check that your parameters are correct. URL: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Page Not Found Error. May be the result of an empty query. &quot;</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;URL: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">414</span><span class="p">:</span>
-        <span class="n">_reason</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">reason</span>
-        <span class="n">_example</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="n">_URL_TOO_LONG_EXAMPLE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                    # n is the number of chunks to divide the query into </span><span class="se">\n</span>
 <span class="s2">                    split_list = np.array_split(site_list, n)</span>
 <span class="s2">                    data_list = []  # list to store chunk results in </span><span class="se">\n</span>
@@ -302,38 +486,146 @@
 <span class="s2">                        data = nwis.get_record(sites=site_list, service=&#39;dv&#39;, </span><span class="se">\n</span>
 <span class="s2">                                               start=start, end=end) </span><span class="se">\n</span>
 <span class="s2">                        data_list.append(data)  # append results to list&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Request URL too long. Modify your query to use fewer sites. &quot;</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;API response reason: </span><span class="si">{</span><span class="n">_reason</span><span class="si">}</span><span class="s2">. Pseudo-code example of how to &quot;</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;split your query: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">_example</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
 
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_url_too_long_error</span><span class="p">(</span><span class="n">detail</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">URLTooLong</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">URLTooLong</span><span class="p">(</span>
+        <span class="s2">&quot;Request URL too long. Modify your query to use fewer sites. &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">. Pseudo-code example of how to split your query: &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">_URL_TOO_LONG_EXAMPLE</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="_network_error">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._network_error">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_network_error</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">httpx</span><span class="o">.</span><span class="n">URL</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TransportError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NetworkError</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the :class:`~dataretrieval.exceptions.NetworkError` for a failed</span>
+<span class="sd">    round-trip ``exc`` (no HTTP response: timeout, DNS, refused connection).&quot;&quot;&quot;</span>
+    <span class="c1"># Some httpx transport errors stringify empty (e.g. ``ConnectTimeout()``);</span>
+    <span class="c1"># fall back to the class name so the message is always informative.</span>
+    <span class="n">detail</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">return</span> <span class="n">NetworkError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not reach the service at </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_get">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._get">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">httpx</span><span class="o">.</span><span class="n">URL</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;``httpx.get`` for the single-shot paths, surfacing a transport failure as</span>
+<span class="sd">    a typed :class:`~dataretrieval.exceptions.NetworkError` (the chunker wraps its</span>
+<span class="sd">    own as resumable interruptions, so it stays off this wrapper).&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">httpx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TransportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_network_error</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span></div>
+
+
+
+<div class="viewcode-block" id="_raise_for_status">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils._raise_for_status">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_raise_for_status</span><span class="p">(</span>
+    <span class="n">response</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">detail_from</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise the typed :class:`DataRetrievalError` for an HTTP error response;</span>
+<span class="sd">    return ``None`` on success.</span>
+
+<span class="sd">    Shared by the legacy :func:`query` path (and ``streamstats`` /</span>
+<span class="sd">    ``wateruse``). Delegates the status-to-type mapping to</span>
+<span class="sd">    :func:`dataretrieval.exceptions.error_for_status`, except a too-long-URL</span>
+<span class="sd">    status (413 / 414): that gets the same actionable &quot;split your query&quot;</span>
+<span class="sd">    remediation as the client-side over-long-URL case below, rather than a bare</span>
+<span class="sd">    ``HTTP 414`` (both still raise :class:`~dataretrieval.exceptions.URLTooLong`).</span>
+
+<span class="sd">    ``detail_from``, when given, is called *only on an error response* to pull an</span>
+<span class="sd">    API-specific detail string (e.g. a JSON error envelope&#39;s message) out of the</span>
+<span class="sd">    body; a truthy result is appended to the raised message. This lets callers</span>
+<span class="sd">    surface their API&#39;s error wording without re-implementing the status-to-type</span>
+<span class="sd">    mapping and message format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">413</span><span class="p">,</span> <span class="mi">414</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">_url_too_long_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API response reason: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">reason_phrase</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;HTTP </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">reason_phrase</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="n">detail</span> <span class="o">=</span> <span class="n">detail_from</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="k">if</span> <span class="n">detail_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">detail</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;: </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; (URL: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="k">raise</span> <span class="n">error_for_status</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="query">
+<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.query">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span>
+    <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send a query.</span>
+
+<span class="sd">    Wrapper for httpx.get that handles errors, converts listed</span>
+<span class="sd">    query parameters to comma separated strings, and returns response.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url: string</span>
+<span class="sd">        URL to query</span>
+<span class="sd">    payload: dict</span>
+<span class="sd">        query parameters passed to ``httpx.get``</span>
+<span class="sd">    delimiter: string</span>
+<span class="sd">        delimiter to use with lists</span>
+<span class="sd">    ssl_check: bool</span>
+<span class="sd">        If True, check SSL certificates, if False, do not check SSL,</span>
+<span class="sd">        default is True</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    response: ``httpx.Response``</span>
+<span class="sd">        The response from the API query ``httpx.get`` function call.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    DataRetrievalError</span>
+<span class="sd">        On an HTTP error response, the typed subclass for the status (see</span>
+<span class="sd">        :func:`dataretrieval.exceptions.error_for_status` for the mapping); or</span>
+<span class="sd">        :class:`~dataretrieval.exceptions.NoSitesError` when a 200 response</span>
+<span class="sd">        reports no data matched; or :class:`~dataretrieval.exceptions.NetworkError`</span>
+<span class="sd">        on a connection-level failure (timeout, DNS), with the underlying</span>
+<span class="sd">        ``httpx`` exception on ``__cause__``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">payload</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">payload</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_str</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">)</span>
+    <span class="c1"># httpx serializes None params as ``foo=``; USGS rejects with 400.</span>
+    <span class="c1"># Drop them. (``to_str`` returns None for non-iterable scalars like bools.)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">payload</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="n">user_agent</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;user-agent&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;python-dataretrieval/</span><span class="si">{</span><span class="n">dataretrieval</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">user_agent</span><span class="p">,</span>
+            <span class="n">verify</span><span class="o">=</span><span class="n">ssl_check</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">HTTPX_DEFAULTS</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">InvalidURL</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_url_too_long_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;httpx rejected the URL client-side: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="n">_raise_for_status</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+    <span class="c1"># USGS waterservices signals an empty result with a 200 whose body starts</span>
+    <span class="c1"># &quot;No sites/data ...&quot; (its legacy wording); surface it as NoSitesError.</span>
     <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;No sites/data&quot;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">NoSitesError</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">response</span></div>
-
-
-
-<div class="viewcode-block" id="NoSitesError">
-<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.NoSitesError">[docs]</a>
-<span class="k">class</span> <span class="nc">NoSitesError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom error class used when selection criteria returns no sites/data.&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="NoSitesError.__init__">
-<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.NoSitesError.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span></div>
-
-
-<div class="viewcode-block" id="NoSitesError.__str__">
-<a class="viewcode-back" href="../../reference/utils.html#dataretrieval.utils.NoSitesError.__str__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="s2">&quot;No sites/data found using the selection criteria specified in url: &quot;</span>
-            <span class="s2">&quot;</span><span class="si">{url}</span><span class="s2">&quot;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span></div>
-</div>
 
 </pre></div>
 

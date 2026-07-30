@@ -7,10 +7,12 @@ API reference
 .. toctree::
     :maxdepth: 1
 
-    nadp
+    exceptions
+    ngwmn
     nldi
     nwis
     streamstats
     utils
     waterdata
+    wateruse
     wqp

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing &mdash; dataretrieval 0.1.dev1+g4dc9f6a68 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Contributing &mdash; dataretrieval 0.1.dev1+gd2920217d documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=bb1e5188"></script>
+      <script src="../_static/documentation_options.js?v=b530e927"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -151,7 +151,7 @@ no tests is preferable to no contribution at all.</p></li>
 <li><p>If the pull request adds functionality, the docs should be updated. Put
 your new functionality into a function with a docstring, and add the
 feature to the list in README.md.</p></li>
-<li><p>The pull request should work for Python 3.6, 3.7, 3.8, and pass the GitHub
+<li><p>The pull request should work for Python 3.9 and later, and pass the GitHub
 Actions continuous integration pipelines.</p></li>
 </ol>
 </section>
@@ -162,12 +162,12 @@ first digit of the version indicates a breaking change. Any smaller changes
 should attempt to maintain backwards-compatibility with previous code and
 issue deprecation warnings for features or functionality that will be removed
 or no longer be backwards-compatible in future releases.</p>
-<p>When updating the package version, there are currently two places where this
-must be done:</p>
-<ol class="arabic simple">
-<li><p>In the <cite>setup.py</cite> file the version field should be updated</p></li>
-<li><p>In the <cite>conf.py</cite> file both the version and release fields can be updated</p></li>
-</ol>
+<p>The package version is derived automatically from Git tags by
+<code class="docutils literal notranslate"><span class="pre">setuptools_scm</span></code> (see <code class="docutils literal notranslate"><span class="pre">[tool.setuptools_scm]</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>), so
+there is no version string to edit by hand. To cut a release, tag the commit
+(for example, <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">v1.2.3</span></code>) and push the tag; both the installed package
+version and the documentation’s <code class="docutils literal notranslate"><span class="pre">version</span></code> and <code class="docutils literal notranslate"><span class="pre">release</span></code> values (read via
+<code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code> in <code class="docutils literal notranslate"><span class="pre">docs/source/conf.py</span></code>) follow from it.</p>
 </section>
 </section>
 <section id="coding-standards">
@@ -182,7 +182,7 @@ must be done:</p>
 <div><ul>
 <li><p>Example:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
 <span class="sd">&quot;&quot;&quot;Example function with types documented in the docstring.</span>
 
 <span class="sd">A more detailed description of the function and its implementation.</span>
@@ -227,11 +227,11 @@ must be done:</p>
     <span class="s1">&#39;Pirate&#39;</span><span class="p">:</span>  <span class="s2">&quot;Arr! Thar be </span><span class="si">%(number_of_lights)s</span><span class="s2"> lights.&quot;</span>
 <span class="p">}</span>
 
-<span class="k">def</span> <span class="nf">lights_message</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">number_of_lights</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lights_message</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">number_of_lights</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a language-appropriate string reporting the light count.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">LIGHT_MESSAGES</span><span class="p">[</span><span class="n">language</span><span class="p">]</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
 
-<span class="k">def</span> <span class="nf">is_pirate</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_pirate</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True if the given message sounds piratical.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?i)(arr|avast|yohoho)!&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </pre></div>
