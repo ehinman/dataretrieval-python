@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.ngwmn &mdash; dataretrieval 0.1.dev1+gd2920217d documentation</title>
+  <title>dataretrieval.ngwmn &mdash; dataretrieval 0.1.dev1+gd5eab2077 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=b530e927"></script>
+      <script src="../../_static/documentation_options.js?v=fde7ea40"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -44,6 +44,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../meta/installing.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../userguide/index.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/index.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../meta/contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../meta/license.html">License and Disclaimer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reference/index.html">API reference</a></li>
@@ -74,16 +75,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for dataretrieval.ngwmn</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;National Ground-Water Monitoring Network (NGWMN) getters.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Retrieve data from the National Ground-Water Monitoring Network (NGWMN).</span>
 
 <span class="sd">The NGWMN exposes its data through a dedicated OGC API</span>
 <span class="sd">(``https://api.waterdata.usgs.gov/ngwmn/ogcapi``) with five collections:</span>
 <span class="sd">``sites``, ``waterLevelObs``, ``lithologyObs``, ``constructionObs``, and</span>
-<span class="sd">``providers``. Each getter below delegates to the shared OGC engine</span>
-<span class="sd">(:func:`~dataretrieval.ogc.engine.get_ogc_data`) with</span>
-<span class="sd">``base_url=NGWMN_OGC_API_URL``, so multi-value chunking, pagination,</span>
-<span class="sd">retry/resume, and result shaping all behave exactly as they do for the main</span>
-<span class="sd">Water Data getters.</span>
+<span class="sd">``providers``. Each getter below delegates to the shared OGC facade</span>
+<span class="sd">(:func:`~dataretrieval.ogc.get_ogc_data`) with ``base_url=NGWMN_OGC_API_URL``.</span>
+<span class="sd">Multi-value chunking, pagination, retry/resume, and result shaping therefore</span>
+<span class="sd">behave exactly as they do for the main Water Data getters.</span>
 
 <span class="sd">Unlike the main Water Data collections, NGWMN aggregates monitoring locations</span>
 <span class="sd">from many agencies, so ``monitoring_location_id`` values use other agency</span>
@@ -95,13 +95,33 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.codes.states</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_state</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">BASE_URL</span><span class="p">,</span> <span class="n">OgcDialect</span><span class="p">,</span> <span class="n">_get_args</span><span class="p">,</span> <span class="n">get_ogc_data</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseMetadata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.credentials</span><span class="w"> </span><span class="kn">import</span> <span class="n">WATERDATA_BASE_URL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc</span><span class="w"> </span><span class="kn">import</span> <span class="n">OgcDialect</span><span class="p">,</span> <span class="n">get_ogc_data</span><span class="p">,</span> <span class="n">prepare_request_args</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval._response_metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseMetadata</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;get_sites&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_water_level&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_lithology&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_well_construction&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_providers&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># The Water Data API base URL, from the credentials leaf rather than OGC policy</span>
+<span class="c1"># internals: it names the same authority the API key is scoped to. Spelling the</span>
+<span class="c1"># host out here instead would put a second copy of it in the package, which</span>
+<span class="c1"># ``tests/architecture_test.py::test_credential_policy_has_one_definition``</span>
+<span class="c1"># rejects: the code that attaches the API key and the code that strips it at</span>
+<span class="c1"># redirect time must not be able to disagree about which host is authorized.</span>
+<span class="n">BASE_URL</span> <span class="o">=</span> <span class="n">WATERDATA_BASE_URL</span>
 
 <span class="c1"># The National Ground-Water Monitoring Network exposes its own OGC API at a</span>
 <span class="c1"># separate, unversioned base.</span>
@@ -147,10 +167,8 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="_get">
-<a class="viewcode-back" href="../../reference/ngwmn.html#dataretrieval.ngwmn._get">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="n">service</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">BaseMetadata</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Marshal a getter&#39;s arguments and dispatch to the shared OGC engine.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Marshal a getter&#39;s arguments and dispatch to the shared OGC facade.</span>
 
 <span class="sd">    Every NGWMN getter ends with this same call; centralizing it keeps the</span>
 <span class="sd">    NGWMN base URL, output id, and dialect wired up in exactly one place.</span>
@@ -158,15 +176,14 @@
     <span class="n">queryable</span> <span class="o">=</span> <span class="n">_STATE_QUERYABLE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">queryable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">apply_state</span><span class="p">(</span><span class="n">local_vars</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">queryable</span><span class="p">[</span><span class="s2">&quot;to&quot;</span><span class="p">],</span> <span class="n">into</span><span class="o">=</span><span class="n">queryable</span><span class="p">[</span><span class="s2">&quot;into&quot;</span><span class="p">])</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">_get_args</span><span class="p">(</span><span class="n">local_vars</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">prepare_request_args</span><span class="p">(</span><span class="n">local_vars</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">get_ogc_data</span><span class="p">(</span>
         <span class="n">args</span><span class="p">,</span>
         <span class="n">service</span><span class="p">,</span>
         <span class="n">output_id</span><span class="o">=</span><span class="n">_NGWMN_OUTPUT_ID</span><span class="p">,</span>
         <span class="n">base_url</span><span class="o">=</span><span class="n">NGWMN_OGC_API_URL</span><span class="p">,</span>
         <span class="n">dialect</span><span class="o">=</span><span class="n">NGWMN_DIALECT</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_sites">

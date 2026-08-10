@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADR 0007: Organize service adapters behind stable facades &mdash; dataretrieval 0.1.dev1+gd5eab2077 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fde7ea40"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="ADR 0008: Separate fan-out execution from chunk planning" href="0008-fan-out-execution.html" />
+    <link rel="prev" title="ADR 0006: Use a service-neutral transport layer" href="0006-service-neutral-transport.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            dataretrieval
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../meta/installing.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Architecture</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../index.html#purpose-and-scope">Purpose and scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#architecture-characteristics">Architecture characteristics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#context-view">Context view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#composition-and-dependency-view">Composition and dependency view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#interface-view">Interface view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#service-return-contracts">Service return contracts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#interaction-view">Interaction view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#resource-and-configuration-view">Resource and configuration view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#known-architectural-debt">Known architectural debt</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#change-process">Change process</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">Architecture Decision Records</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="0001-modular-monolith.html">ADR 0001: Retain a modular monolith with service adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0002-sync-api-async-internals.html">ADR 0002: Keep synchronous public APIs over async internals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0003-dependency-direction.html">ADR 0003: Direct dependencies toward stable policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0004-error-retry-resume.html">ADR 0004: Use typed failures and bounded recovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0005-legacy-nwis.html">ADR 0005: Quarantine and retire legacy NWIS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0006-service-neutral-transport.html">ADR 0006: Use a service-neutral transport layer</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ADR 0007: Organize service adapters behind stable facades</a></li>
+<li class="toctree-l4"><a class="reference internal" href="0008-fan-out-execution.html">ADR 0008: Separate fan-out execution from chunk planning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="template.html">ADR template</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../meta/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../meta/license.html">License and Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/index.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">dataretrieval</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Architecture</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Architecture Decision Records</a></li>
+      <li class="breadcrumb-item active">ADR 0007: Organize service adapters behind stable facades</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/architecture/decisions/0007-adapter-facades.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adr-0007-organize-service-adapters-behind-stable-facades">
+<h1>ADR 0007: Organize service adapters behind stable facades<a class="headerlink" href="#adr-0007-organize-service-adapters-behind-stable-facades" title="Link to this heading"></a></h1>
+<section id="status">
+<h2>Status<a class="headerlink" href="#status" title="Link to this heading"></a></h2>
+<p>Accepted</p>
+</section>
+<section id="context">
+<h2>Context<a class="headerlink" href="#context" title="Link to this heading"></a></h2>
+<p>A service facade can remain stable while its implementation grows for unrelated
+upstream collections. Keeping every Water Data getter in one module coupled
+changes to time series, monitoring metadata, field measurements, reference
+catalogs, Samples, statistics, and generalized CQL queries. Active service
+modules also relied on Python’s implicit wildcard-export behavior, making their
+intended public surfaces difficult to distinguish from imported helpers.</p>
+</section>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">dataretrieval.waterdata.api</span></code> is a compatibility facade with no collection
+logic. Implementation functions are grouped by collection family in
+<code class="docutils literal notranslate"><span class="pre">time_series</span></code>, <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">measurements</span></code>, <code class="docutils literal notranslate"><span class="pre">reference</span></code>, <code class="docutils literal notranslate"><span class="pre">samples</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">cql</span></code>. Existing focused modules continue to own ratings, nearest-value
+selection, Statistics API execution, shared Water Data policy, and type
+vocabularies.</p>
+<p>The facade re-exports the established functions and preserves their signatures,
+their identity at <code class="docutils literal notranslate"><span class="pre">dataretrieval.waterdata</span></code>, and the private Samples constants
+compatibility tests rely on. It does not rewrite their <code class="docutils literal notranslate"><span class="pre">__module__</span></code>: each
+function reports the family module that defines it, so a traceback names a file
+that contains code. Collection-family modules do not
+import one another; shared behavior belongs in Water Data policy, OGC, or
+transport modules.</p>
+<p>Active service and focused implementation modules declare explicit <code class="docutils literal notranslate"><span class="pre">__all__</span></code>
+exports. Deprecated NWIS remains outside this modernization. Service adapters do
+not import another adapter’s implementation to obtain transport behavior.</p>
+<p>Return contracts remain service-specific. Tabular services generally return a
+<code class="docutils literal notranslate"><span class="pre">(DataFrame,</span> <span class="pre">metadata)</span></code> pair, while NLDI returns geospatial values directly,
+StreamStats exposes response/domain objects, and ratings return parsed tables or
+raw catalog features. Uniformity is not a reason to break these established
+contracts.</p>
+</section>
+<section id="consequences">
+<h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Collection changes have a smaller implementation and test blast radius.</p></li>
+<li><p>Existing package and <code class="docutils literal notranslate"><span class="pre">waterdata.api</span></code> import paths remain stable.</p></li>
+<li><p>Explicit exports make accidental public-surface growth reviewable.</p></li>
+<li><p>More modules require a maintained facade and executable signature/export
+snapshots.</p></li>
+<li><p>Tests are described as public-contract, adapter-contract, component, or
+cross-component layers without forcing a disruptive move of established
+files.</p></li>
+</ul>
+</section>
+<section id="compliance">
+<h2>Compliance<a class="headerlink" href="#compliance" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tests/contracts/public_api_test.py</span></code> freezes Water Data imports, signatures,
+facade identity, and compatibility names. <code class="docutils literal notranslate"><span class="pre">tests/architecture_test.py</span></code>
+requires a logic-free facade, exact active-service exports, and separate OGC
+request construction and schema execution. <code class="docutils literal notranslate"><span class="pre">.importlinter</span></code> keeps the
+collection families independent of each other, holds NGWMN to the OGC facade,
+and prevents lateral adapter reach-through.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="0006-service-neutral-transport.html" class="btn btn-neutral float-left" title="ADR 0006: Use a service-neutral transport layer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="0008-fan-out-execution.html" class="btn btn-neutral float-right" title="ADR 0008: Separate fan-out execution from chunk planning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
