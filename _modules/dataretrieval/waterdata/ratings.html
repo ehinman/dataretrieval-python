@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.waterdata.ratings &mdash; dataretrieval 0.1.dev1+gd5eab2077 documentation</title>
+  <title>dataretrieval.waterdata.ratings &mdash; dataretrieval 0.1.dev1+g996b7a4af documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=fde7ea40"></script>
+      <script src="../../../_static/documentation_options.js?v=dc704d5d"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -75,49 +75,44 @@
            <div itemprop="articleBody">
              
   <h1>Source code for dataretrieval.waterdata.ratings</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;USGS rating-curve retrieval via the Water Data STAC catalog.</span>
+<span></span><span class="sd">"""USGS rating-curve retrieval via the Water Data STAC catalog.</span>
 
 <span class="sd">Wraps ``https://api.waterdata.usgs.gov/stac/v0/search`` and the per-feature</span>
 <span class="sd">RDB downloads that follow. The STAC endpoint hosts standard NWIS rating</span>
 <span class="sd">files (``exsa``, ``base``, ``corr``) for active streamgages — see the</span>
 <span class="sd">service overview at https://api.waterdata.usgs.gov/docs/stac/ and the</span>
 <span class="sd">WDFN announcement at https://waterdata.usgs.gov/blog/wdfn-rating-curves/.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">get_args</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRetrievalError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRetrievalError</span><span class="p">,</span> <span class="n">SkippedRatingWarning</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DURATION_RE</span><span class="p">,</span> <span class="n">_format_api_dates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">_raise_for_non_200</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">_quote_cql_str</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">_check_monitoring_location_id</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.rdb</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_rdb_comment</span><span class="p">,</span> <span class="n">read_rdb</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.http</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">HTTPX_DEFAULTS</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.fanout</span><span class="w"> </span><span class="kn">import</span> <span class="n">FanOut</span><span class="p">,</span> <span class="n">active_client</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.http</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">default_headers</span> <span class="k">as</span> <span class="n">_default_headers</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.http</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">get</span> <span class="k">as</span> <span class="n">_get</span><span class="p">,</span>
-<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.links</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_next_url</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.waterdata.endpoints</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAC_URL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_paginated</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.waterdata.endpoints</span><span class="w"> </span><span class="kn">import</span> <span class="n">ratings_catalog_url</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;get_ratings&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"get_ratings"</span><span class="p">]</span>
 
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-<span class="n">RATING_FILE_TYPE</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;exsa&quot;</span><span class="p">,</span> <span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="s2">&quot;corr&quot;</span><span class="p">]</span>
+<span class="n">RATING_FILE_TYPE</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"exsa"</span><span class="p">,</span> <span class="s2">"base"</span><span class="p">,</span> <span class="s2">"corr"</span><span class="p">]</span>
 <span class="n">_VALID_FILE_TYPES</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">RATING_FILE_TYPE</span><span class="p">)</span>
 
 
@@ -125,7 +120,7 @@
 <a class="viewcode-back" href="../../../reference/waterdata.html#dataretrieval.waterdata.get_ratings">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_ratings</span><span class="p">(</span>
     <span class="n">monitoring_location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">file_type</span><span class="p">:</span> <span class="n">RATING_FILE_TYPE</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">RATING_FILE_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;exsa&quot;</span><span class="p">,</span>
+    <span class="n">file_type</span><span class="p">:</span> <span class="n">RATING_FILE_TYPE</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">RATING_FILE_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"exsa"</span><span class="p">,</span>
     <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">bbox</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -133,17 +128,17 @@
     <span class="n">download_and_parse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get USGS stage-discharge rating curves from the Water Data STAC catalog.</span>
+<span class="w">    </span><span class="sd">"""Get USGS stage-discharge rating curves from the Water Data STAC catalog.</span>
 
 <span class="sd">    Returns the current rating tables for one or more active USGS streamgages.</span>
 <span class="sd">    The catalog hosts three file types:</span>
 
-<span class="sd">    - ``&quot;exsa&quot;`` — expanded shift-adjusted rating (default). Adds a ``SHIFT``</span>
-<span class="sd">      column to ``&quot;base&quot;`` indicating the current shift for each ``INDEP``.</span>
-<span class="sd">    - ``&quot;base&quot;`` — three columns: ``INDEP`` (typically gage height, ft);</span>
-<span class="sd">      ``DEP`` (typically discharge, ft^3/s); ``STOR`` (&quot;``*``&quot; marks fixed</span>
+<span class="sd">    - ``"exsa"`` — expanded shift-adjusted rating (default). Adds a ``SHIFT``</span>
+<span class="sd">      column to ``"base"`` indicating the current shift for each ``INDEP``.</span>
+<span class="sd">    - ``"base"`` — three columns: ``INDEP`` (typically gage height, ft);</span>
+<span class="sd">      ``DEP`` (typically discharge, ft^3/s); ``STOR`` ("``*``" marks fixed</span>
 <span class="sd">      points of the rating).</span>
-<span class="sd">    - ``&quot;corr&quot;`` — three columns: ``INDEP``; ``CORR`` (correction for that</span>
+<span class="sd">    - ``"corr"`` — three columns: ``INDEP``; ``CORR`` (correction for that</span>
 <span class="sd">      value); ``CORRINDEP`` (corrected INDEP).</span>
 
 <span class="sd">    See https://api.waterdata.usgs.gov/docs/stac/ for the upstream service</span>
@@ -154,20 +149,20 @@
 <span class="sd">    ----------</span>
 <span class="sd">    monitoring_location_id : string or iterable of strings, optional</span>
 <span class="sd">        One or more identifiers in ``AGENCY-ID`` form (e.g.</span>
-<span class="sd">        ``&quot;USGS-01104475&quot;``). If omitted, the spatial / temporal filters</span>
+<span class="sd">        ``"USGS-01104475"``). If omitted, the spatial / temporal filters</span>
 <span class="sd">        determine the result set.</span>
-<span class="sd">    file_type : ``&quot;exsa&quot;``, ``&quot;base&quot;``, ``&quot;corr&quot;``, or a list, default ``&quot;exsa&quot;``</span>
+<span class="sd">    file_type : ``"exsa"``, ``"base"``, ``"corr"``, or a list, default ``"exsa"``</span>
 <span class="sd">        Which rating file(s) to request.</span>
 <span class="sd">    file_path : string, optional</span>
 <span class="sd">        Directory the downloaded RDB files are written to. If ``None``</span>
 <span class="sd">        (the default), the parsed ``DataFrame`` is returned without</span>
-<span class="sd">        persisting the bytes to disk; ``df.attrs[&quot;url&quot;]`` still records</span>
+<span class="sd">        persisting the bytes to disk; ``df.attrs["url"]`` still records</span>
 <span class="sd">        where each rating came from.</span>
 <span class="sd">    time : string or list of strings, optional</span>
 <span class="sd">        STAC ``datetime`` filter (passed through verbatim under that name)</span>
-<span class="sd">        — a single date / datetime, or an interval (``&quot;start/end&quot;``,</span>
+<span class="sd">        — a single date / datetime, or an interval (``"start/end"``,</span>
 <span class="sd">        optionally half-bounded with ``..``). ISO 8601 *durations*</span>
-<span class="sd">        (``&quot;P1M&quot;``, ``&quot;PT36H&quot;``, …) are **not** supported by the</span>
+<span class="sd">        (``"P1M"``, ``"PT36H"``, …) are **not** supported by the</span>
 <span class="sd">        rating-curve service; passing one raises ``ValueError``.</span>
 <span class="sd">    bbox : list of numbers, optional</span>
 <span class="sd">        Only features whose geometry intersects the bounding box are</span>
@@ -178,20 +173,20 @@
 <span class="sd">    download_and_parse : bool, default ``True``</span>
 <span class="sd">        If ``True``, download every matching RDB file and parse it into a</span>
 <span class="sd">        ``DataFrame``. If ``False``, return the raw list of STAC feature</span>
-<span class="sd">        dicts so the caller can inspect what&#39;s available before pulling</span>
+<span class="sd">        dicts so the caller can inspect what's available before pulling</span>
 <span class="sd">        bytes.</span>
 <span class="sd">    ssl_check : bool, default ``True``</span>
-<span class="sd">        Verify the server&#39;s SSL certificate.</span>
+<span class="sd">        Verify the server's SSL certificate.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict[str, pandas.DataFrame] or list[dict]</span>
 <span class="sd">        When ``download_and_parse=True`` (the default), a dict keyed by</span>
-<span class="sd">        feature ID (e.g. ``&quot;USGS-01104475.exsa.rdb&quot;``) mapping to a parsed</span>
+<span class="sd">        feature ID (e.g. ``"USGS-01104475.exsa.rdb"``) mapping to a parsed</span>
 <span class="sd">        ``DataFrame``. Each frame carries provenance in</span>
-<span class="sd">        ``df.attrs[&quot;comment&quot;]`` (the RDB ``#``-prefixed header lines, like</span>
+<span class="sd">        ``df.attrs["comment"]`` (the RDB ``#``-prefixed header lines, like</span>
 <span class="sd">        rating id, parameter, last-shifted timestamp) and</span>
-<span class="sd">        ``df.attrs[&quot;url&quot;]`` (the asset URL it was fetched from). When</span>
+<span class="sd">        ``df.attrs["url"]`` (the asset URL it was fetched from). When</span>
 <span class="sd">        ``download_and_parse=False``, the raw list of STAC feature dicts</span>
 <span class="sd">        as returned by the search endpoint.</span>
 
@@ -200,6 +195,30 @@
 <span class="sd">    ValueError</span>
 <span class="sd">        For an unrecognized ``file_type`` value or an ISO 8601 duration in</span>
 <span class="sd">        ``time``.</span>
+<span class="sd">    DataRetrievalError</span>
+<span class="sd">        The typed subclass for an HTTP error response during the search (see</span>
+<span class="sd">        :func:`transport.pagination.paginate`);</span>
+<span class="sd">        or :class:`~dataretrieval.exceptions.NetworkError` if a request</span>
+<span class="sd">        can't reach the service in a way retrying cannot fix.</span>
+<span class="sd">    FanOutInterrupted</span>
+<span class="sd">        A transient failure (429 / 5xx / timeout) survived the built-in</span>
+<span class="sd">        retries during the search or a download. ``exc.call.resume()``</span>
+<span class="sd">        finishes the interrupted stage (see :doc:`/userguide/errors`); the</span>
+<span class="sd">        assembled per-feature dict is returned by a fresh ``get_ratings``</span>
+<span class="sd">        call.</span>
+
+<span class="sd">    Warns</span>
+<span class="sd">    -----</span>
+<span class="sd">    SkippedRatingWarning</span>
+<span class="sd">        One feature of the batch failed *deterministically* -- a stale</span>
+<span class="sd">        catalog entry (404 on its data asset), a feature with no data asset,</span>
+<span class="sd">        a malformed RDB file. That feature is skipped and its id is absent</span>
+<span class="sd">        from the returned dict; the rest of the batch is unaffected. A site</span>
+<span class="sd">        with no published rating never warns -- it matches no feature in the</span>
+<span class="sd">        search, so there is nothing to skip. See</span>
+<span class="sd">        :class:`~dataretrieval.exceptions.SkippedItemWarning` for the policy</span>
+<span class="sd">        (transients never skip) and the ``filterwarnings`` recipe that makes</span>
+<span class="sd">        a skip fatal.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -207,18 +226,18 @@
 
 <span class="sd">        &gt;&gt;&gt; # Default exsa ratings for two sites</span>
 <span class="sd">        &gt;&gt;&gt; ratings = dataretrieval.waterdata.get_ratings(</span>
-<span class="sd">        ...     monitoring_location_id=[&quot;USGS-01104475&quot;, &quot;USGS-01104460&quot;],</span>
-<span class="sd">        ...     file_type=&quot;exsa&quot;,</span>
+<span class="sd">        ...     monitoring_location_id=["USGS-01104475", "USGS-01104460"],</span>
+<span class="sd">        ...     file_type="exsa",</span>
 <span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; ratings[&quot;USGS-01104475.exsa.rdb&quot;].head()</span>
+<span class="sd">        &gt;&gt;&gt; ratings["USGS-01104475.exsa.rdb"].head()</span>
 
 <span class="sd">        &gt;&gt;&gt; # Both exsa and corr files for the same two sites</span>
 <span class="sd">        &gt;&gt;&gt; ratings = dataretrieval.waterdata.get_ratings(</span>
-<span class="sd">        ...     monitoring_location_id=[&quot;USGS-01104475&quot;, &quot;USGS-01104460&quot;],</span>
-<span class="sd">        ...     file_type=[&quot;exsa&quot;, &quot;corr&quot;],</span>
+<span class="sd">        ...     monitoring_location_id=["USGS-01104475", "USGS-01104460"],</span>
+<span class="sd">        ...     file_type=["exsa", "corr"],</span>
 <span class="sd">        ... )</span>
 
-<span class="sd">        &gt;&gt;&gt; # Bounding-box query, listing what&#39;s available without downloading</span>
+<span class="sd">        &gt;&gt;&gt; # Bounding-box query, listing what's available without downloading</span>
 <span class="sd">        &gt;&gt;&gt; features = dataretrieval.waterdata.get_ratings(</span>
 <span class="sd">        ...     bbox=[-95.0, 40.0, -92.0, 42.0],</span>
 <span class="sd">        ...     download_and_parse=False,</span>
@@ -227,25 +246,15 @@
 <span class="sd">        &gt;&gt;&gt; # Restrict to features in a date range (durations not supported)</span>
 <span class="sd">        &gt;&gt;&gt; features = dataretrieval.waterdata.get_ratings(</span>
 <span class="sd">        ...     bbox=[-95.0, 40.0, -92.0, 42.0],</span>
-<span class="sd">        ...     time=[&quot;2026-04-29&quot;, &quot;..&quot;],</span>
+<span class="sd">        ...     time=["2026-04-29", ".."],</span>
 <span class="sd">        ...     download_and_parse=False,</span>
 <span class="sd">        ... )</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">monitoring_location_id</span> <span class="o">=</span> <span class="n">_check_monitoring_location_id</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="p">)</span>
     <span class="n">file_types</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">file_type</span><span class="p">)</span>
-    <span class="n">invalid</span> <span class="o">=</span> <span class="p">[</span><span class="n">ft</span> <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">file_types</span> <span class="k">if</span> <span class="n">ft</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_VALID_FILE_TYPES</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Invalid file_type </span><span class="si">{</span><span class="n">invalid</span><span class="si">!r}</span><span class="s2">; &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;valid options are </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_VALID_FILE_TYPES</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">_DURATION_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;ISO 8601 durations (e.g. &#39;P7D&#39;) are not supported in `time` &quot;</span>
-            <span class="s2">&quot;for the rating-curve service. Provide a date or interval instead.&quot;</span>
-        <span class="p">)</span>
+    <span class="n">_validate_file_types</span><span class="p">(</span><span class="n">file_types</span><span class="p">)</span>
+    <span class="n">_validate_time_no_duration</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
     <span class="n">time_str</span> <span class="o">=</span> <span class="n">_format_api_dates</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="c1"># Mirror R: pin file_type server-side only when one type is requested.</span>
@@ -257,57 +266,67 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">download_and_parse</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">features</span>
 
-    <span class="n">requested</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">file_types</span><span class="p">)</span>
-    <span class="n">matching</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">requested</span>
-    <span class="p">]</span>
+    <span class="n">matching</span> <span class="o">=</span> <span class="n">_filter_features_by_type</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">file_types</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">matching</span><span class="p">:</span>
-        <span class="n">fid</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="n">fid</span><span class="p">]</span> <span class="o">=</span> <span class="n">_download_and_parse</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">ssl_check</span><span class="p">)</span>
-        <span class="c1"># One bad feature shouldn&#39;t abort the batch: log and skip the module&#39;s</span>
-        <span class="c1"># typed errors (DataRetrievalError, e.g. an HTTPError from</span>
-        <span class="c1"># _raise_for_non_200) plus the transport / parse / file / missing-asset</span>
-        <span class="c1"># errors a single download can raise.</span>
-        <span class="k">except</span> <span class="p">(</span>
-            <span class="n">DataRetrievalError</span><span class="p">,</span>
-            <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span>
-            <span class="ne">LookupError</span><span class="p">,</span>
-            <span class="ne">OSError</span><span class="p">,</span>
-            <span class="ne">ValueError</span><span class="p">,</span>
-        <span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed to download / parse </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">out</span></div>
+    <span class="k">return</span> <span class="n">_download_all</span><span class="p">(</span><span class="n">matching</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">ssl_check</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_as_list</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a string or iterable-of-strings to a list.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Normalize a string or iterable-of-strings to a list."""</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_file_types</span><span class="p">(</span><span class="n">file_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Raise ValueError for any unrecognized file type."""</span>
+    <span class="n">invalid</span> <span class="o">=</span> <span class="p">[</span><span class="n">ft</span> <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">file_types</span> <span class="k">if</span> <span class="n">ft</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_VALID_FILE_TYPES</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Invalid file_type </span><span class="si">{</span><span class="n">invalid</span><span class="si">!r}</span><span class="s2">; "</span>
+            <span class="sa">f</span><span class="s2">"valid options are </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_VALID_FILE_TYPES</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_time_no_duration</span><span class="p">(</span><span class="n">time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Raise ValueError if ``time`` contains an ISO 8601 duration."""</span>
+    <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_DURATION_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"ISO 8601 durations (e.g. 'P7D') are not supported in `time` "</span>
+            <span class="s2">"for the rating-curve service. Provide a date or interval instead."</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_filter_features_by_type</span><span class="p">(</span>
+    <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">file_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Return only features whose file_type matches the requested types."""</span>
+    <span class="n">requested</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">file_types</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"properties"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">requested</span>
+    <span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_filter</span><span class="p">(</span>
     <span class="n">monitoring_location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">file_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose the CQL filter sent to STAC ``/search``.</span>
+<span class="w">    </span><span class="sd">"""Compose the CQL filter sent to STAC ``/search``.</span>
 
 <span class="sd">    Returns ``None`` when neither argument constrains the search.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">monitoring_location_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ids</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="p">)</span>
-        <span class="n">joined</span> <span class="o">=</span> <span class="s2">&quot;&#39;, &#39;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">)</span>
-        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;monitoring_location_id IN (&#39;</span><span class="si">{</span><span class="n">joined</span><span class="si">}</span><span class="s2">&#39;)&quot;</span><span class="p">)</span>
+        <span class="n">joined</span> <span class="o">=</span> <span class="s2">"', '"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">)</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"monitoring_location_id IN ('</span><span class="si">{</span><span class="n">joined</span><span class="si">}</span><span class="s2">')"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file_type = &#39;</span><span class="si">{</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">file_type</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file_type = '</span><span class="si">{</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">file_type</span><span class="p">)</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">" AND "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="k">else</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_search</span><span class="p">(</span>
@@ -317,78 +336,180 @@
     <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run STAC ``/search`` and return ALL matching features.</span>
+<span class="w">    </span><span class="sd">"""Run STAC ``/search`` and return ALL matching features.</span>
 
 <span class="sd">    ``limit`` is the page size (clamped to the service maximum of 10,000); the</span>
 <span class="sd">    STAC ``next`` link is followed until exhausted so a result set larger than</span>
-<span class="sd">    one page isn&#39;t silently truncated.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    one page isn't silently truncated.</span>
 
-    <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)}</span>
+<span class="sd">    The page walk is :func:`~dataretrieval.transport.pagination.run_paginated`</span>
+<span class="sd">    with STAC strategies. Pages carry features rather than rows, so each page</span>
+<span class="sd">    frame wraps the raw feature dicts in a single ``feature`` column.</span>
+<span class="sd">    """</span>
+    <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"limit"</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)}</span>
     <span class="k">if</span> <span class="n">filter_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;filter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_str</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">"filter"</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_str</span>
     <span class="k">if</span> <span class="n">time_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_str</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">"datetime"</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_str</span>
     <span class="k">if</span> <span class="n">bbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">query_params</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">bbox</span><span class="p">))</span>
+        <span class="n">query_params</span><span class="p">[</span><span class="s2">"bbox"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">bbox</span><span class="p">))</span>
 
-    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">STAC_URL</span><span class="si">}</span><span class="s2">/search&quot;</span>
-    <span class="c1"># ``params`` is sent only on the first request; each STAC ``next`` link</span>
-    <span class="c1"># already carries the query, so it is reset to None inside the loop.</span>
-    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">query_params</span>
-    <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">while</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span>
-            <span class="n">url</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="n">_default_headers</span><span class="p">(</span><span class="n">url</span><span class="p">),</span>
-            <span class="n">verify</span><span class="o">=</span><span class="n">ssl_check</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">HTTPX_DEFAULTS</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">_raise_for_non_200</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">features</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;features&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ratings_catalog_url</span><span class="p">()</span><span class="si">}</span><span class="s2">/search"</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">query_params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">_default_headers</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_response</span><span class="p">(</span><span class="n">resp</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"feature"</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"features"</span><span class="p">,</span> <span class="p">[])})</span>
         <span class="c1"># The STAC ``next`` link is a fully-formed GET href carrying the</span>
-        <span class="c1"># limit/filter/bbox and a continuation token, so follow it verbatim</span>
-        <span class="c1"># (dropping our own params) until the server stops emitting one.</span>
+        <span class="c1"># limit/filter/bbox and a continuation token, so it becomes the</span>
+        <span class="c1"># cursor verbatim -- except for the shared safety policy: the href is</span>
+        <span class="c1"># response data, so it is checked before it becomes a request. A link</span>
+        <span class="c1"># to another host would carry this request's API key off the</span>
+        <span class="c1"># authorized host, and one carrying ``user:pass@`` would mint an</span>
+        <span class="c1"># ``Authorization: Basic`` header the caller never configured.</span>
         <span class="n">href</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">lnk</span><span class="p">[</span><span class="s2">&quot;href&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;links&quot;</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">lnk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rel&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;next&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">lnk</span><span class="p">[</span><span class="s2">"href"</span><span class="p">]</span> <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"links"</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">lnk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rel"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"next"</span><span class="p">),</span>
             <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="c1"># Verbatim except for the credentials: the href is response data, so it</span>
-        <span class="c1"># is checked before it becomes a request. A link to another host would</span>
-        <span class="c1"># carry this request&#39;s API key off the authorized host, and one carrying</span>
-        <span class="c1"># ``user:pass@`` would mint an ``Authorization: Basic`` header the caller</span>
-        <span class="c1"># never configured.</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">href</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">resolve_next_url</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">service</span><span class="o">=</span><span class="s2">&quot;ratings&quot;</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">href</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">resolve_next_url</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="n">resp</span><span class="p">,</span> <span class="n">service</span><span class="o">=</span><span class="s2">"ratings"</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">features</span>
+        <span class="k">return</span> <span class="n">page</span><span class="p">,</span> <span class="n">cursor</span>
 
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">follow_up</span><span class="p">(</span><span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sess</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">sess</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">_default_headers</span><span class="p">(</span><span class="n">cursor</span><span class="p">))</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_download_and_parse</span><span class="p">(</span>
-    <span class="n">feature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the feature&#39;s data asset, parse RDB, optionally persist to disk.&quot;&quot;&quot;</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;assets&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;href&quot;</span><span class="p">]</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span>
-        <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">_default_headers</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_check</span><span class="p">,</span> <span class="o">**</span><span class="n">HTTPX_DEFAULTS</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">run_paginated</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">req</span><span class="p">],</span>
+        <span class="n">parse_response</span><span class="o">=</span><span class="n">parse_response</span><span class="p">,</span>
+        <span class="n">follow_up</span><span class="o">=</span><span class="n">follow_up</span><span class="p">,</span>
+        <span class="n">raise_for_status</span><span class="o">=</span><span class="n">_raise_for_non_200</span><span class="p">,</span>
+        <span class="n">client_options</span><span class="o">=</span><span class="p">{</span><span class="s2">"verify"</span><span class="p">:</span> <span class="n">ssl_check</span><span class="p">},</span>
+        <span class="n">service</span><span class="o">=</span><span class="s2">"ratings"</span><span class="p">,</span>
+        <span class="n">adapter</span><span class="o">=</span><span class="s2">"waterdata"</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="c1"># Every page frame is built with a ``feature`` column, and the combine</span>
+    <span class="c1"># helpers preserve it, so the empty case needs no special branch.</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">"feature"</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_asset_href</span><span class="p">(</span><span class="n">feature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The feature's data-asset href, or ``None`` when the catalog omits it."""</span>
+    <span class="n">href</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"assets"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">href</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_inert_response</span><span class="p">(</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Headers</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A body-less stand-in the executor can aggregate.</span>
+
+<span class="sd">    The executor keeps every completed item's response until the drive ends,</span>
+<span class="sd">    but its aggregation reads only status, headers, and URL -- never the</span>
+<span class="sd">    body. Handing it a stand-in keeps a large batch from pinning every</span>
+<span class="sd">    downloaded file in memory for the whole drive. ``elapsed`` is left</span>
+<span class="sd">    unset; the aggregate's ``_safe_elapsed`` treats that as zero.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">httpx</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_fetch_rating</span><span class="p">(</span>
+    <span class="n">feature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Fetch one feature's data asset, parse RDB, optionally persist to disk.</span>
+
+<span class="sd">    Headers are evaluated against each asset href -- assets can live on a</span>
+<span class="sd">    different host than the catalog, and must not inherit its auth. Runs</span>
+<span class="sd">    inside a drive: the executor publishes the shared client before any</span>
+<span class="sd">    fetch starts.</span>
+<span class="sd">    """</span>
+    <span class="n">fid</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+    <span class="n">href</span> <span class="o">=</span> <span class="n">_asset_href</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">href</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"STAC feature </span><span class="si">{</span><span class="n">fid</span><span class="si">!r}</span><span class="s2"> carries no data asset href."</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">_default_headers</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">active_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"_fetch_rating must run inside a FanOut drive."</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
     <span class="n">_raise_for_non_200</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">fid</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">read_rdb</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;comment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extract_rdb_comment</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">url</span>
-    <span class="k">return</span> <span class="n">df</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"comment"</span><span class="p">]</span> <span class="o">=</span> <span class="n">extract_rdb_comment</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"url"</span><span class="p">]</span> <span class="o">=</span> <span class="n">href</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">response</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_download_all</span><span class="p">(</span>
+    <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Download every feature's rating over the shared fan-out executor.</span>
+
+<span class="sd">    The plan is the feature list itself -- ``FanOut`` asks a plan only to be</span>
+<span class="sd">    sized and iterable -- so the downloads get bounded concurrency,</span>
+<span class="sd">    per-attempt retry, the progress line, and the resumable interruption</span>
+<span class="sd">    taxonomy in place of the previous serial loop, which had none of them.</span>
+
+<span class="sd">    Failure policy (rationale on</span>
+<span class="sd">    :class:`~dataretrieval.exceptions.SkippedItemWarning`): a *transient*</span>
+<span class="sd">    failure (429 / 5xx / timeout / connection drop) re-raises so the executor</span>
+<span class="sd">    retries and then raises resumable; a *deterministic* per-feature failure</span>
+<span class="sd">    warns with :class:`~dataretrieval.exceptions.SkippedRatingWarning` and</span>
+<span class="sd">    skips the feature. ``OSError`` writing ``file_path`` propagates -- a</span>
+<span class="sd">    local disk problem is not a per-feature condition. Raw ``httpx`` errors</span>
+<span class="sd">    pass through untouched so the executor can classify and retry them.</span>
+
+<span class="sd">    The public result is a dict keyed by feature id, so the fetch closure</span>
+<span class="sd">    accumulates it; the executor's combined frame is not the return shape and</span>
+<span class="sd">    is discarded. Both outcomes hand the executor a body-less</span>
+<span class="sd">    :func:`_inert_response` -- a skip so the item counts as complete (a later</span>
+<span class="sd">    ``resume()`` continues past it rather than re-attempting), a success so</span>
+<span class="sd">    the drive doesn't pin every downloaded file in memory while keeping the</span>
+<span class="sd">    real status and quota headers for aggregation.</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">features</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch</span><span class="p">(</span><span class="n">feature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">]:</span>
+        <span class="n">fid</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"&lt;missing id&gt;"</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">_fetch_rating</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">DataRetrievalError</span><span class="p">,</span> <span class="ne">LookupError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">DataRetrievalError</span><span class="p">)</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">retryable</span><span class="p">:</span>
+                <span class="k">raise</span>  <span class="c1"># transient: the executor retries, then raises resumable</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Skipping rating </span><span class="si">{</span><span class="n">fid</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">SkippedRatingWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># 204: completed, no content.</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(),</span> <span class="n">_inert_response</span><span class="p">(</span>
+                <span class="mi">204</span><span class="p">,</span> <span class="n">_asset_href</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ratings_catalog_url</span><span class="p">()</span><span class="si">}</span><span class="s2">/search"</span>
+            <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">fid</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">_inert_response</span><span class="p">(</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">),</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span>
+        <span class="p">)</span>
+
+    <span class="n">FanOut</span><span class="p">(</span>
+        <span class="n">features</span><span class="p">,</span>
+        <span class="n">fetch</span><span class="p">,</span>
+        <span class="n">RetryPolicy</span><span class="o">.</span><span class="n">from_configuration</span><span class="p">(</span><span class="n">adapter</span><span class="o">=</span><span class="s2">"waterdata"</span><span class="p">),</span>
+        <span class="n">client_options</span><span class="o">=</span><span class="p">{</span><span class="s2">"verify"</span><span class="p">:</span> <span class="n">ssl_check</span><span class="p">},</span>
+        <span class="c1"># No single URL expresses "all of these assets" -- the aggregate</span>
+        <span class="c1"># reports the first, matching what a single-feature call would show.</span>
+        <span class="n">canonical_url</span><span class="o">=</span><span class="n">_asset_href</span><span class="p">(</span><span class="n">features</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">service</span><span class="o">=</span><span class="s2">"ratings"</span><span class="p">,</span>
+        <span class="n">adapter</span><span class="o">=</span><span class="s2">"waterdata"</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">resume</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 
            </div>

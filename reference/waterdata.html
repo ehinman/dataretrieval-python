@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.waterdata &mdash; dataretrieval 0.1.dev1+gd5eab2077 documentation</title>
+  <title>dataretrieval.waterdata &mdash; dataretrieval 0.1.dev1+g996b7a4af documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=fde7ea40"></script>
+      <script src="../_static/documentation_options.js?v=dc704d5d"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="dataretrieval.wateruse" href="wateruse.html" />
+    <link rel="next" title="dataretrieval.nwdc" href="nwdc.html" />
     <link rel="prev" title="dataretrieval.utils" href="utils.html" /> 
 </head>
 
@@ -51,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../meta/contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../meta/license.html">License and Disclaimer</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="config.html">dataretrieval.configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">dataretrieval.exceptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ngwmn.html">dataretrieval.ngwmn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nldi.html">dataretrieval.nldi</a></li>
@@ -58,6 +59,16 @@
 <li class="toctree-l2"><a class="reference internal" href="streamstats.html">dataretrieval.streamstats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">dataretrieval.utils</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">dataretrieval.waterdata</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__delattr__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__delattr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__eq__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__eq__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__hash__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__hash__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__init__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__repr__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.__setattr__"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.__setattr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataretrieval.waterdata.WaterdataConfiguration.adapter"><code class="docutils literal notranslate"><span class="pre">WaterdataConfiguration.adapter</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#dataretrieval.waterdata.get_channel"><code class="docutils literal notranslate"><span class="pre">get_channel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dataretrieval.waterdata.get_codes"><code class="docutils literal notranslate"><span class="pre">get_codes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dataretrieval.waterdata.get_combined_metadata"><code class="docutils literal notranslate"><span class="pre">get_combined_metadata()</span></code></a></li>
@@ -82,7 +93,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#dataretrieval.waterdata.parallel_chunks"><code class="docutils literal notranslate"><span class="pre">parallel_chunks()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="wateruse.html">dataretrieval.wateruse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nwdc.html">dataretrieval.nwdc</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wqp.html">dataretrieval.wqp</a></li>
 </ul>
 </li>
@@ -119,6 +130,81 @@
 <p>This module provides functions for downloading data from the Water Data APIs,
 including the USGS Aquarius Samples database.</p>
 <p>See <a class="reference external" href="https://api.waterdata.usgs.gov/">https://api.waterdata.usgs.gov/</a> for the API reference.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dataretrieval.waterdata.</span></span><span class="sig-name descname"><span class="pre">WaterdataConfiguration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stall_timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concurrency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel_chunks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dataretrieval/waterdata/configuration.html#WaterdataConfiguration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration" title="Link to this definition"></a></dt>
+<dd><p>Settings for Water Data calls alone.</p>
+<p>Pass one to <code class="xref py py-func docutils literal notranslate"><span class="pre">dataretrieval.configure()</span></code> to narrow a setting to this
+service, leaving every other adapter on whatever the tiers below it
+resolve:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">WaterdataConfiguration</span><span class="p">(</span><span class="n">concurrency</span><span class="o">=</span><span class="mi">8</span><span class="p">)):</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">sites</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>retries</strong> (<em>int</em><em>, </em><em>optional</em>) – Retries attempted after a transient failure; <code class="docutils literal notranslate"><span class="pre">0</span></code> disables retrying.</p></li>
+<li><p><strong>stall_timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – Seconds a call may go without receiving any data before retrying stops.</p></li>
+<li><p><strong>base_url</strong> (<em>str</em><em>, </em><em>optional</em>) – Root to send Water Data requests to, instead of the service’s own. The
+package appends its own paths, so one value moves all four families
+together – <code class="docutils literal notranslate"><span class="pre">/ogcapi/v0</span></code>, <code class="docutils literal notranslate"><span class="pre">/samples-data</span></code>, <code class="docutils literal notranslate"><span class="pre">/statistics/v0</span></code> and
+<code class="docutils literal notranslate"><span class="pre">/stac/v0</span></code>. Code only: the file and the environment refuse it. The
+API key is scoped to the host that honors it, so a redirected call
+carries no key.</p></li>
+<li><p><strong>concurrency</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Cap on simultaneous sub-requests, or <code class="docutils literal notranslate"><span class="pre">&quot;unbounded&quot;</span></code>.</p></li>
+<li><p><strong>parallel_chunks</strong> (<em>int</em><em>, </em><em>optional</em>) – Baseline fan-out for multi-value queries. Each sub-request spends
+rate-limit quota, so raise it only for pulls you know are large.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__delattr__">
+<span class="sig-name descname"><span class="pre">__delattr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__delattr__" title="Link to this definition"></a></dt>
+<dd><p>Implement delattr(self, name).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__eq__">
+<span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__eq__" title="Link to this definition"></a></dt>
+<dd><p>Return self==value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__hash__">
+<span class="sig-name descname"><span class="pre">__hash__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__hash__" title="Link to this definition"></a></dt>
+<dd><p>Return hash(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stall_timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concurrency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel_chunks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;not</span> <span class="pre">set&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.__setattr__">
+<span class="sig-name descname"><span class="pre">__setattr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.__setattr__" title="Link to this definition"></a></dt>
+<dd><p>Implement setattr(self, name, value).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dataretrieval.waterdata.WaterdataConfiguration.adapter">
+<span class="sig-name descname"><span class="pre">adapter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'waterdata'</span></span><a class="headerlink" href="#dataretrieval.waterdata.WaterdataConfiguration.adapter" title="Link to this definition"></a></dt>
+<dd><p>The adapter this configuration targets, by the name of the module a
+caller imports. <code class="docutils literal notranslate"><span class="pre">None</span></code> on the package-wide <code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code>,
+which every adapter reads. A <code class="docutils literal notranslate"><span class="pre">ClassVar</span></code>, not a field: the adapter is a
+property of the class, which is what stops the caller restating it at
+every call site and stops the roster being spelled twice.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="dataretrieval.waterdata.get_channel">
 <span class="sig-prename descclassname"><span class="pre">dataretrieval.waterdata.</span></span><span class="sig-name descname"><span class="pre">get_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitoring_location_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_visit_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_flow</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_flow_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_width_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_area_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_velocity_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_location_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_location_distance_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_stability</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_material</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_evenness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_velocity_description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical_velocity_description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitudinal_velocity_description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_modified</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_measurement_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FILTER_LANG</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">queryables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">pd.DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="utils.html#dataretrieval.utils.BaseMetadata" title="dataretrieval.utils.BaseMetadata"><span class="pre">BaseMetadata</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/dataretrieval/waterdata/measurements.html#get_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataretrieval.waterdata.get_channel" title="Link to this definition"></a></dt>
@@ -258,7 +344,7 @@ collection supports.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get channel data from a</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># single site from a single year</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -428,50 +514,50 @@ collection supports.</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># All time series and field measurements at a single surface-water site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-05407000&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-05407000"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Same, for a groundwater well — water-level and aquifer columns</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># are populated where the surface-water example has nulls</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-375907091432201&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-375907091432201"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Every series in a single county, useful for area-of-interest workflows</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">&quot;Wisconsin&quot;</span><span class="p">,</span> <span class="n">county_name</span><span class="o">=</span><span class="s2">&quot;Dane County&quot;</span>
+<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">"Wisconsin"</span><span class="p">,</span> <span class="n">county_name</span><span class="o">=</span><span class="s2">"Dane County"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Inventory across multiple HUCs, restricted to streams and springs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">hydrologic_unit_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;11010008&quot;</span><span class="p">,</span> <span class="s2">&quot;11010009&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Stream&quot;</span><span class="p">,</span> <span class="s2">&quot;Spring&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">hydrologic_unit_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"11010008"</span><span class="p">,</span> <span class="s2">"11010009"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="p">[</span><span class="s2">"Stream"</span><span class="p">,</span> <span class="s2">"Spring"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Discharge time series at three sites with at least one</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># observation in the past month</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07069000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07064000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07068000&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07069000"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07064000"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07068000"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">],</span>
-<span class="gp">... </span>    <span class="n">end</span><span class="o">=</span><span class="s2">&quot;P1M&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">end</span><span class="o">=</span><span class="s2">"P1M"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Two-step &quot;what&#39;s available?&quot; → &quot;fetch it&quot; workflow:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Two-step "what's available?" → "fetch it" workflow:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># 1. inventory the sites in two HUCs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hucs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_combined_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">hydrologic_unit_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;11010008&quot;</span><span class="p">,</span> <span class="s2">&quot;11010009&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="s2">&quot;Stream&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">hydrologic_unit_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"11010008"</span><span class="p">,</span> <span class="s2">"11010009"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="s2">"Stream"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># 2. pull continuous discharge at every distinct site found</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sites</span> <span class="o">=</span> <span class="n">hucs</span><span class="p">[</span><span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sites</span> <span class="o">=</span> <span class="n">hucs</span><span class="p">[</span><span class="s2">"monitoring_location_id"</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_continuous</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">sites</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;P1D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"P1D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -630,24 +716,24 @@ collection supports.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get instantaneous gage height data from a</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># single site from a single year</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00065&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2021-01-01T00:00:00Z/2022-01-01T00:00:00Z&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00065"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"2021-01-01T00:00:00Z/2022-01-01T00:00:00Z"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pull several disjoint time windows in one call via a CQL</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># ``filter``. See ``dataretrieval.ogc.filters`` for the</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># full grammar, auto-chunking, and pitfalls.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="nb">filter</span><span class="o">=</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="s2">&quot;(time &gt;= &#39;2023-06-01T12:00:00Z&#39; &quot;</span>
-<span class="gp">... </span>        <span class="s2">&quot;AND time &lt;= &#39;2023-06-01T13:00:00Z&#39;) &quot;</span>
-<span class="gp">... </span>        <span class="s2">&quot;OR (time &gt;= &#39;2023-06-15T12:00:00Z&#39; &quot;</span>
-<span class="gp">... </span>        <span class="s2">&quot;AND time &lt;= &#39;2023-06-15T13:00:00Z&#39;)&quot;</span>
+<span class="gp">... </span>        <span class="s2">"(time &gt;= '2023-06-01T12:00:00Z' "</span>
+<span class="gp">... </span>        <span class="s2">"AND time &lt;= '2023-06-01T13:00:00Z') "</span>
+<span class="gp">... </span>        <span class="s2">"OR (time &gt;= '2023-06-15T12:00:00Z' "</span>
+<span class="gp">... </span>        <span class="s2">"AND time &lt;= '2023-06-15T13:00:00Z')"</span>
 <span class="gp">... </span>    <span class="p">),</span>
-<span class="gp">... </span>    <span class="n">filter_lang</span><span class="o">=</span><span class="s2">&quot;cql-text&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">filter_lang</span><span class="o">=</span><span class="s2">"cql-text"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -705,33 +791,33 @@ geometry is present.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># (compound AND-of-INs).</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">waterdata</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cql</span> <span class="o">=</span> <span class="p">{</span>
-<span class="gp">... </span>    <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;and&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"and"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">"args"</span><span class="p">:</span> <span class="p">[</span>
 <span class="gp">... </span>        <span class="p">{</span>
-<span class="gp">... </span>            <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span>
-<span class="gp">... </span>            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
-<span class="gp">... </span>                <span class="p">{</span><span class="s2">&quot;property&quot;</span><span class="p">:</span> <span class="s2">&quot;parameter_code&quot;</span><span class="p">},</span>
-<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span> <span class="s2">&quot;00065&quot;</span><span class="p">],</span>
+<span class="gp">... </span>            <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">"args"</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">... </span>                <span class="p">{</span><span class="s2">"property"</span><span class="p">:</span> <span class="s2">"parameter_code"</span><span class="p">},</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">"00060"</span><span class="p">,</span> <span class="s2">"00065"</span><span class="p">],</span>
 <span class="gp">... </span>            <span class="p">],</span>
 <span class="gp">... </span>        <span class="p">},</span>
 <span class="gp">... </span>        <span class="p">{</span>
-<span class="gp">... </span>            <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span>
-<span class="gp">... </span>            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
-<span class="gp">... </span>                <span class="p">{</span><span class="s2">&quot;property&quot;</span><span class="p">:</span> <span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">},</span>
-<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;USGS-07367300&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-03277200&quot;</span><span class="p">],</span>
+<span class="gp">... </span>            <span class="s2">"op"</span><span class="p">:</span> <span class="s2">"in"</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">"args"</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">... </span>                <span class="p">{</span><span class="s2">"property"</span><span class="p">:</span> <span class="s2">"monitoring_location_id"</span><span class="p">},</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">"USGS-07367300"</span><span class="p">,</span> <span class="s2">"USGS-03277200"</span><span class="p">],</span>
 <span class="gp">... </span>            <span class="p">],</span>
 <span class="gp">... </span>        <span class="p">},</span>
 <span class="gp">... </span>    <span class="p">],</span>
 <span class="gp">... </span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_cql</span><span class="p">(</span><span class="n">collection</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">,</span> <span class="n">cql</span><span class="o">=</span><span class="n">cql</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_cql</span><span class="p">(</span><span class="n">collection</span><span class="o">=</span><span class="s2">"daily"</span><span class="p">,</span> <span class="n">cql</span><span class="o">=</span><span class="n">cql</span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Monitoring locations whose HUC starts with &quot;02070010&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Monitoring locations whose HUC starts with "02070010"</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># (LIKE with the CQL2 ``%`` wildcard).</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_cql</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">&quot;monitoring-locations&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">cql</span><span class="o">=</span><span class="s1">&#39;{&quot;op&quot;: &quot;like&quot;, &quot;args&quot;: [&#39;</span>
-<span class="gp">... </span>    <span class="s1">&#39;{&quot;property&quot;: &quot;hydrologic_unit_code&quot;},&#39;</span>
-<span class="gp">... </span>    <span class="s1">&#39; &quot;02070010%&quot;]}&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">"monitoring-locations"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">cql</span><span class="o">=</span><span class="s1">'{"op": "like", "args": ['</span>
+<span class="gp">... </span>    <span class="s1">'{"property": "hydrologic_unit_code"},'</span>
+<span class="gp">... </span>    <span class="s1">' "02070010%"]}'</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -895,46 +981,46 @@ collection supports.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get daily flow data from a single site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># over a yearlong period</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2021-01-01T00:00:00Z/2022-01-01T00:00:00Z&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"2021-01-01T00:00:00Z/2022-01-01T00:00:00Z"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Quick &quot;show me the last week&quot; idiom (ISO 8601 duration)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Quick "show me the last week" idiom (ISO 8601 duration)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get approved daily flow data from multiple sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-09423350&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">approval_status</span><span class="o">=</span><span class="s2">&quot;Approved&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;2024-01-01/..&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-05114000"</span><span class="p">,</span> <span class="s2">"USGS-09423350"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">approval_status</span><span class="o">=</span><span class="s2">"Approved"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"2024-01-01/.."</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pull only rows whose underlying record was refreshed in the</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># last 7 days — handy for incremental ETL polling</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Chain queries: pull all stream sites in a state, then their</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># daily discharge for the last week. The site list can be hundreds</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># of values long — the request is transparently chunked across</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># multiple chunks so the URL stays under the server&#39;s byte</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># multiple chunks so the URL stays under the server's byte</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># limit. Combined output looks like a single query.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sites_df</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_monitoring_locations</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">&quot;Ohio&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="s2">&quot;Stream&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">"Ohio"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">site_type</span><span class="o">=</span><span class="s2">"Stream"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">sites_df</span><span class="p">[</span><span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">sites_df</span><span class="p">[</span><span class="s2">"monitoring_location_id"</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1090,28 +1176,28 @@ collection supports.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get field measurements from a single groundwater site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># and parameter code, and do not return geometry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-375907091432201&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;72019&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-375907091432201"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"72019"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">skip_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Half-bounded time range: every measurement at this site since</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 1980 (open-ended end). Use ``&quot;../&lt;date&gt;&quot;`` for the inverse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 1980 (open-ended end). Use ``"../&lt;date&gt;"`` for the inverse</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># (everything up to a date).</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-425957088141001&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;1980-01-01/..&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-425957088141001"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"1980-01-01/.."</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get field measurements from multiple sites and</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># parameter codes from the last 20 years</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-451605097071701&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-263819081585801&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-451605097071701"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-263819081585801"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">],</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;62611&quot;</span><span class="p">,</span> <span class="s2">&quot;72019&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;P20Y&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"62611"</span><span class="p">,</span> <span class="s2">"72019"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"P20Y"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1198,28 +1284,28 @@ collection supports.</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># All field-measurement series at a surface-water site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Same, for a groundwater well</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-375907091432201&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-375907091432201"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Multi-site, narrowed to two parameter codes</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements_metadata</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-451605097071701&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-263819081585801&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-451605097071701"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-263819081585801"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">],</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;62611&quot;</span><span class="p">,</span> <span class="s2">&quot;72019&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"62611"</span><span class="p">,</span> <span class="s2">"72019"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Series modified in the last year — useful for incremental ETL</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_field_measurements_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-375907091432201&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;72019&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">&quot;P1Y&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-375907091432201"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"72019"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">"P1Y"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1383,28 +1469,28 @@ collection supports.</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get latest flow data from a single site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restrict to the last 7 days; sites with no observation in that</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># window are dropped instead of returned with stale values</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pull only rows whose underlying record was refreshed in the</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># last 7 days, across multiple sites and parameters</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-451605097071701&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-14181500&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span> <span class="s2">&quot;72019&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-451605097071701"</span><span class="p">,</span> <span class="s2">"USGS-14181500"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"00060"</span><span class="p">,</span> <span class="s2">"72019"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get latest continuous measurements for multiple sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_continuous</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-09423350&quot;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-05114000"</span><span class="p">,</span> <span class="s2">"USGS-09423350"</span><span class="p">]</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1570,27 +1656,27 @@ collection supports.</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get most recent daily flow data from a single site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restrict to rows whose underlying record was refreshed in the</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># last 7 days</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">&quot;P7D&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">last_modified</span><span class="o">=</span><span class="s2">"P7D"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Multi-site, multi-parameter — discharge and water temperature</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># at two sites in a single round-trip</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-01491000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-01645000&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span> <span class="s2">&quot;00010&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-01491000"</span><span class="p">,</span> <span class="s2">"USGS-01645000"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"00060"</span><span class="p">,</span> <span class="s2">"00010"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get most recent daily measurements for two sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_latest_daily</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-09423350&quot;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-05114000"</span><span class="p">,</span> <span class="s2">"USGS-09423350"</span><span class="p">]</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1800,8 +1886,8 @@ collection supports.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get monitoring location info for specific sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># and only specific properties</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_monitoring_locations</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-09423350&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">properties</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;monitoring_location_id&quot;</span><span class="p">,</span> <span class="s2">&quot;state_name&quot;</span><span class="p">,</span> <span class="s2">&quot;country_name&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-05114000"</span><span class="p">,</span> <span class="s2">"USGS-09423350"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">properties</span><span class="o">=</span><span class="p">[</span><span class="s2">"monitoring_location_id"</span><span class="p">,</span> <span class="s2">"state_name"</span><span class="p">,</span> <span class="s2">"country_name"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1869,6 +1955,11 @@ silently dropped.</p></li>
 </ul>
 </p>
 </dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="exceptions.html#dataretrieval.FanOutInterrupted" title="dataretrieval.FanOutInterrupted"><strong>FanOutInterrupted</strong></a> – If the underlying fan-out is interrupted. <code class="docutils literal notranslate"><span class="pre">partial_frame</span></code> and
+    <code class="docutils literal notranslate"><span class="pre">call.partial_frame</span></code> contain nearest-selected rows with
+    <code class="docutils literal notranslate"><span class="pre">target_time</span></code>; <code class="docutils literal notranslate"><span class="pre">call.resume()</span></code> returns that same public shape.</p>
+</dd>
 </dl>
 <p class="rubric">Notes</p>
 <p><em>Window sizing and ties.</em> When <code class="docutils literal notranslate"><span class="pre">window</span></code> is exactly half the service
@@ -1890,24 +1981,24 @@ all N targets into one request (auto-chunked when the URL is long).</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pair three off-grid timestamps with nearby observations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">targets</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;2023-06-15T10:30:31Z&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;2023-06-15T14:07:12Z&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;2023-06-16T03:45:19Z&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"2023-06-15T10:30:31Z"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"2023-06-15T14:07:12Z"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"2023-06-16T03:45:19Z"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">]</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_nearest_continuous</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">targets</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Widen the window for an irregular-cadence gage</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_nearest_continuous</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">targets</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">window</span><span class="o">=</span><span class="s2">&quot;PT30M&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">on_tie</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">window</span><span class="o">=</span><span class="s2">"PT30M"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">on_tie</span><span class="o">=</span><span class="s2">"mean"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1995,23 +2086,23 @@ collection supports.</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Full annual peak record at one site (both stage and discharge)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Discharge peaks only</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Multi-site peaks for a parameter, narrowed to a water-year range</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07069000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07064000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-07068000&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07069000"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07064000"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-07068000"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">],</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">water_year</span><span class="o">=</span><span class="p">[</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">2021</span><span class="p">,</span> <span class="mi">2022</span><span class="p">,</span> <span class="mi">2023</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
@@ -2051,9 +2142,9 @@ property name), <code class="docutils literal notranslate"><span class="pre">typ
 </dl>
 <p class="rubric">Examples</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">waterdata</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_queryables</span><span class="p">(</span><span class="s2">&quot;daily&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;queryable&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;state_name&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span>
-<span class="go">&#39;string&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_queryables</span><span class="p">(</span><span class="s2">"daily"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"queryable"</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">"state_name"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">]</span>
+<span class="go">'string'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2117,25 +2208,47 @@ as returned by the search endpoint.</p>
 <dd class="field-odd"><p>dict[str, pandas.DataFrame] or list[dict]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – For an unrecognized <code class="docutils literal notranslate"><span class="pre">file_type</span></code> value or an ISO 8601 duration in
-    <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – For an unrecognized <code class="docutils literal notranslate"><span class="pre">file_type</span></code> value or an ISO 8601 duration in
+    <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#dataretrieval.exceptions.DataRetrievalError" title="dataretrieval.exceptions.DataRetrievalError"><strong>DataRetrievalError</strong></a> – The typed subclass for an HTTP error response during the search (see
+    <code class="xref py py-func docutils literal notranslate"><span class="pre">transport.pagination.paginate()</span></code>);
+    or <a class="reference internal" href="exceptions.html#dataretrieval.exceptions.NetworkError" title="dataretrieval.exceptions.NetworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkError</span></code></a> if a request
+    can’t reach the service in a way retrying cannot fix.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#dataretrieval.FanOutInterrupted" title="dataretrieval.FanOutInterrupted"><strong>FanOutInterrupted</strong></a> – A transient failure (429 / 5xx / timeout) survived the built-in
+    retries during the search or a download. <code class="docutils literal notranslate"><span class="pre">exc.call.resume()</span></code>
+    finishes the interrupted stage (see <a class="reference internal" href="../userguide/errors.html"><span class="doc">Handling errors</span></a>); the
+    assembled per-feature dict is returned by a fresh <code class="docutils literal notranslate"><span class="pre">get_ratings</span></code>
+    call.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Warns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>SkippedRatingWarning</strong> – One feature of the batch failed <em>deterministically</em> – a stale
+catalog entry (404 on its data asset), a feature with no data asset,
+a malformed RDB file. That feature is skipped and its id is absent
+from the returned dict; the rest of the batch is unaffected. A site
+with no published rating never warns – it matches no feature in the
+search, so there is nothing to skip. See
+<a class="reference internal" href="exceptions.html#dataretrieval.exceptions.SkippedItemWarning" title="dataretrieval.exceptions.SkippedItemWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">SkippedItemWarning</span></code></a> for the policy
+(transients never skip) and the <code class="docutils literal notranslate"><span class="pre">filterwarnings</span></code> recipe that makes
+a skip fatal.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Default exsa ratings for two sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratings</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-01104475&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-01104460&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">file_type</span><span class="o">=</span><span class="s2">&quot;exsa&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-01104475"</span><span class="p">,</span> <span class="s2">"USGS-01104460"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">file_type</span><span class="o">=</span><span class="s2">"exsa"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ratings</span><span class="p">[</span><span class="s2">&quot;USGS-01104475.exsa.rdb&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ratings</span><span class="p">[</span><span class="s2">"USGS-01104475.exsa.rdb"</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Both exsa and corr files for the same two sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratings</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-01104475&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-01104460&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;exsa&quot;</span><span class="p">,</span> <span class="s2">&quot;corr&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-01104475"</span><span class="p">,</span> <span class="s2">"USGS-01104460"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">"exsa"</span><span class="p">,</span> <span class="s2">"corr"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Bounding-box query, listing what&#39;s available without downloading</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Bounding-box query, listing what's available without downloading</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">features</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">bbox</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">95.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">92.0</span><span class="p">,</span> <span class="mf">42.0</span><span class="p">],</span>
 <span class="gp">... </span>    <span class="n">download_and_parse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -2144,7 +2257,7 @@ as returned by the search endpoint.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restrict to features in a date range (durations not supported)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">features</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_ratings</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">bbox</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">95.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">92.0</span><span class="p">,</span> <span class="mf">42.0</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2026-04-29&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="s2">"2026-04-29"</span><span class="p">,</span> <span class="s2">".."</span><span class="p">],</span>
 <span class="gp">... </span>    <span class="n">download_and_parse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
@@ -2199,13 +2312,13 @@ medium code values).</p></li>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get table of USGS parameter codes</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_reference_table</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">&quot;parameter-codes&quot;</span>
+<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">"parameter-codes"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get table of selected USGS parameter codes</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_reference_table</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">&quot;parameter-codes&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;00001,00002&quot;</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="n">collection</span><span class="o">=</span><span class="s2">"parameter-codes"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">"id"</span><span class="p">:</span> <span class="s2">"00001,00002"</span><span class="p">},</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2348,25 +2461,25 @@ order is unstable).</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get PFAS results within a bounding box</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">bbox</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">90.2</span><span class="p">,</span> <span class="mf">42.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">88.7</span><span class="p">,</span> <span class="mf">43.2</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">characteristic_group</span><span class="o">=</span><span class="s2">&quot;Organics, PFAS&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">characteristic_group</span><span class="o">=</span><span class="s2">"Organics, PFAS"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get all activities for the Commonwealth of Virginia over a date range</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">service</span><span class="o">=</span><span class="s2">&quot;activities&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">profile</span><span class="o">=</span><span class="s2">&quot;sampact&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">activity_start_date_lower</span><span class="o">=</span><span class="s2">&quot;2023-10-01&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">activity_start_date_upper</span><span class="o">=</span><span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">state_code</span><span class="o">=</span><span class="s2">&quot;US:51&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">service</span><span class="o">=</span><span class="s2">"activities"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">profile</span><span class="o">=</span><span class="s2">"sampact"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">activity_start_date_lower</span><span class="o">=</span><span class="s2">"2023-10-01"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">activity_start_date_upper</span><span class="o">=</span><span class="s2">"2024-01-01"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">state_code</span><span class="o">=</span><span class="s2">"US:51"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get all pH samples for two sites in Utah</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-393147111462301&quot;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;USGS-393343111454101&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-393147111462301"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">"USGS-393343111454101"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">],</span>
-<span class="gp">... </span>    <span class="n">usgs_pcode</span><span class="o">=</span><span class="s2">&quot;00400&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">usgs_pcode</span><span class="o">=</span><span class="s2">"00400"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2408,7 +2521,7 @@ is effectively required. (Samples API: <code class="docutils literal notranslate
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># What discrete-sample data is available at this site?</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_samples_summary</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-04074950&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-04074950"</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2499,20 +2612,20 @@ value for the other statistics.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get monthly and yearly medians for streamflow at streams in Rhode Island</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># from calendar year 2024.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_stats_date_range</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">&quot;RI&quot;</span><span class="p">,</span>  <span class="c1"># Rhode Island (postal code, name, or FIPS all work)</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">site_type_code</span><span class="o">=</span><span class="s2">&quot;ST&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2024-12-31&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">state</span><span class="o">=</span><span class="s2">"RI"</span><span class="p">,</span>  <span class="c1"># Rhode Island (postal code, name, or FIPS all work)</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">site_type_code</span><span class="o">=</span><span class="s2">"ST"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">start_date</span><span class="o">=</span><span class="s2">"2024-01-01"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">end_date</span><span class="o">=</span><span class="s2">"2024-12-31"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="s2">"median"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get monthly and yearly minimum and maximums for gage height at</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># a monitoring location of interest</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_stats_date_range</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00065&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;minimum&quot;</span><span class="p">,</span> <span class="s2">&quot;maximum&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-05114000"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00065"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="p">[</span><span class="s2">"minimum"</span><span class="p">,</span> <span class="s2">"maximum"</span><span class="p">],</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2598,19 +2711,19 @@ value for the other statistics.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get daily, monthly, and annual percentiles for streamflow at</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># a monitoring location of interest</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_stats_por</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="s2">&quot;percentile&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-05114000"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">computation_type</span><span class="o">=</span><span class="s2">"percentile"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get all daily and monthly statistics for the month of January</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># over the entire period of record for streamflow and gage height</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># at a monitoring location of interest</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_stats_por</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;00060&quot;</span><span class="p">,</span> <span class="s2">&quot;00065&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;01-01&quot;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;01-31&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-05114000"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parameter_code</span><span class="o">=</span><span class="p">[</span><span class="s2">"00060"</span><span class="p">,</span> <span class="s2">"00065"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">start_date</span><span class="o">=</span><span class="s2">"01-01"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">end_date</span><span class="o">=</span><span class="s2">"01-31"</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2818,14 +2931,14 @@ collection supports.</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get timeseries metadata information from a single site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># over a yearlong period</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_time_series_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">&quot;USGS-02238500&quot;</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="s2">"USGS-02238500"</span>
 <span class="gp">... </span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get timeseries metadata information from multiple sites</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># that begin after January 1, 1990.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">dataretrieval</span><span class="o">.</span><span class="n">waterdata</span><span class="o">.</span><span class="n">get_time_series_metadata</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;USGS-05114000&quot;</span><span class="p">,</span> <span class="s2">&quot;USGS-09423350&quot;</span><span class="p">],</span>
-<span class="gp">... </span>    <span class="n">begin</span><span class="o">=</span><span class="s2">&quot;1990-01-01/..&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">monitoring_location_id</span><span class="o">=</span><span class="p">[</span><span class="s2">"USGS-05114000"</span><span class="p">,</span> <span class="s2">"USGS-09423350"</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">begin</span><span class="o">=</span><span class="s2">"1990-01-01/.."</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2872,9 +2985,9 @@ for no extra fan-out.</p>
 <p>Each chunk fetches at least one page, so it costs at least one
 request against your hourly rate limit — a larger <code class="docutils literal notranslate"><span class="pre">n</span></code> spends more
 quota. How many chunks run <em>at once</em> is capped separately by
-<code class="docutils literal notranslate"><span class="pre">API_USGS_CONCURRENT</span></code> (default 32), so an <code class="docutils literal notranslate"><span class="pre">n</span></code> beyond that adds
-quota without adding parallelism; the useful range is roughly <code class="docutils literal notranslate"><span class="pre">2</span></code>
-up to <code class="docutils literal notranslate"><span class="pre">API_USGS_CONCURRENT</span></code>.</p>
+the <code class="docutils literal notranslate"><span class="pre">concurrency</span></code> setting (default 32), so an <code class="docutils literal notranslate"><span class="pre">n</span></code> beyond that
+adds quota without adding parallelism; the useful range is roughly
+<code class="docutils literal notranslate"><span class="pre">2</span></code> up to the effective <code class="docutils literal notranslate"><span class="pre">concurrency</span></code>.</p>
 </p>
 </dd>
 <dt class="field-even">Yields<span class="colon">:</span></dt>
@@ -2912,7 +3025,7 @@ across chunks may yield duplicate rows.</p></li>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">waterdata</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">parallel_chunks</span><span class="p">(</span><span class="mi">32</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">df</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="n">waterdata</span><span class="o">.</span><span class="n">get_daily</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">many_sites</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">&quot;00060&quot;</span>
+<span class="gp">... </span>        <span class="n">monitoring_location_id</span><span class="o">=</span><span class="n">many_sites</span><span class="p">,</span> <span class="n">parameter_code</span><span class="o">=</span><span class="s2">"00060"</span>
 <span class="gp">... </span>    <span class="p">)</span>
 </pre></div>
 </div>
@@ -2932,7 +3045,7 @@ across chunks may yield duplicate rows.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="utils.html" class="btn btn-neutral float-left" title="dataretrieval.utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="wateruse.html" class="btn btn-neutral float-right" title="dataretrieval.wateruse" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="nwdc.html" class="btn btn-neutral float-right" title="dataretrieval.nwdc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
