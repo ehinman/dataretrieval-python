@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.waterdata.ratings &mdash; dataretrieval 0.1.dev1+g0a7d47497 documentation</title>
+  <title>dataretrieval.waterdata.ratings &mdash; dataretrieval 0.1.dev1+g776c8b039 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=3f557a2e"></script>
+      <script src="../../../_static/documentation_options.js?v=7d14b0cf"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -91,14 +91,15 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">get_args</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">anyio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval._validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">render_options</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRetrievalError</span><span class="p">,</span> <span class="n">SkippedRatingWarning</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DURATION_RE</span><span class="p">,</span> <span class="n">_format_api_dates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">_DURATION_RE</span><span class="p">,</span> <span class="n">_coerce_to_list</span><span class="p">,</span> <span class="n">_format_api_dates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">_raise_for_non_200</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">_quote_cql_str</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cql_in_clause</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.ogc.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">_check_monitoring_location_id</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.rdb</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_rdb_comment</span><span class="p">,</span> <span class="n">read_rdb</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.transport.fanout</span><span class="w"> </span><span class="kn">import</span> <span class="n">FanOut</span><span class="p">,</span> <span class="n">active_client</span>
@@ -159,10 +160,13 @@
 <span class="sd">        (the default), the parsed ``DataFrame`` is returned without</span>
 <span class="sd">        persisting the bytes to disk; ``df.attrs["url"]`` still records</span>
 <span class="sd">        where each rating came from.</span>
-<span class="sd">    time : string or list of strings, optional</span>
-<span class="sd">        STAC ``datetime`` filter (passed through verbatim under that name)</span>
-<span class="sd">        — a single date / datetime, or an interval (``"start/end"``,</span>
-<span class="sd">        optionally half-bounded with ``..``). ISO 8601 *durations*</span>
+<span class="sd">    time : string, date, datetime, or pandas.Timestamp, or a list of them, optional</span>
+<span class="sd">        STAC ``datetime`` filter — a single date / datetime, an interval</span>
+<span class="sd">        (``"start/end"``, optionally half-bounded with ``..``), or a list of</span>
+<span class="sd">        two values with ``None`` for an open end (``["2026-04-29", None]``).</span>
+<span class="sd">        An interval string is read like the list form: each side is</span>
+<span class="sd">        converted to UTC, and a naive one is UTC, as in pandas. A value</span>
+<span class="sd">        that is not a date raises ``ValueError``. ISO 8601 *durations*</span>
 <span class="sd">        (``"P1M"``, ``"PT36H"``, …) are **not** supported by the</span>
 <span class="sd">        rating-curve service; passing one raises ``ValueError``.</span>
 <span class="sd">    bbox : list of numbers, optional</span>
@@ -174,8 +178,7 @@
 <span class="sd">    download_and_parse : bool, default ``True``</span>
 <span class="sd">        If ``True``, download every matching RDB file and parse it into a</span>
 <span class="sd">        ``DataFrame``. If ``False``, return the raw list of STAC feature</span>
-<span class="sd">        dicts so the caller can inspect what's available before pulling</span>
-<span class="sd">        bytes.</span>
+<span class="sd">        dicts so the caller can inspect what's available before downloading.</span>
 <span class="sd">    ssl_check : bool, default ``True``</span>
 <span class="sd">        Verify the server's SSL certificate.</span>
 
@@ -184,7 +187,7 @@
 <span class="sd">    dict[str, pandas.DataFrame] or list[dict]</span>
 <span class="sd">        When ``download_and_parse=True`` (the default), a dict keyed by</span>
 <span class="sd">        feature ID (e.g. ``"USGS-01104475.exsa.rdb"``) mapping to a parsed</span>
-<span class="sd">        ``DataFrame``. Each frame carries provenance in</span>
+<span class="sd">        ``DataFrame``. Each frame records provenance in</span>
 <span class="sd">        ``df.attrs["comment"]`` (the RDB ``#``-prefixed header lines, like</span>
 <span class="sd">        rating id, parameter, last-shifted timestamp) and</span>
 <span class="sd">        ``df.attrs["url"]`` (the asset URL it was fetched from). When</span>
@@ -202,24 +205,22 @@
 <span class="sd">        or :class:`~dataretrieval.exceptions.NetworkError` if a request</span>
 <span class="sd">        can't reach the service in a way retrying cannot fix.</span>
 <span class="sd">    FanOutInterrupted</span>
-<span class="sd">        A transient failure (429 / 5xx / timeout) survived the built-in</span>
-<span class="sd">        retries during the search or a download. ``exc.call.resume()``</span>
-<span class="sd">        finishes the interrupted stage (see :doc:`/userguide/errors`); the</span>
-<span class="sd">        assembled per-feature dict is returned by a fresh ``get_ratings``</span>
-<span class="sd">        call.</span>
+<span class="sd">        A transient failure (429 / 5xx / timeout) was not resolved by the built-in</span>
+<span class="sd">        retries during the search or a download. ``exc.call.resume()`` finishes the</span>
+<span class="sd">        interrupted stage (see :doc:`/userguide/errors`); the assembled per-feature dict</span>
+<span class="sd">        is returned by a new ``get_ratings`` call.</span>
 
 <span class="sd">    Warns</span>
 <span class="sd">    -----</span>
 <span class="sd">    SkippedRatingWarning</span>
-<span class="sd">        One feature of the batch failed *deterministically* -- a stale</span>
-<span class="sd">        catalog entry (404 on its data asset), a feature with no data asset,</span>
-<span class="sd">        a malformed RDB file. That feature is skipped and its id is absent</span>
-<span class="sd">        from the returned dict; the rest of the batch is unaffected. A site</span>
-<span class="sd">        with no published rating never warns -- it matches no feature in the</span>
-<span class="sd">        search, so there is nothing to skip. See</span>
+<span class="sd">        One feature of the batch failed *deterministically* -- a stale catalog entry</span>
+<span class="sd">        (404 on its data asset), a feature with no data asset, a malformed RDB file.</span>
+<span class="sd">        That feature is skipped and its id is absent from the returned dict; the rest of</span>
+<span class="sd">        the batch is unaffected. A monitoring location with no published rating never</span>
+<span class="sd">        produces a warning -- it matches no feature in the search, so there is nothing</span>
+<span class="sd">        to skip. See</span>
 <span class="sd">        :class:`~dataretrieval.exceptions.SkippedItemWarning` for the policy</span>
-<span class="sd">        (transients never skip) and the ``filterwarnings`` recipe that makes</span>
-<span class="sd">        a skip fatal.</span>
+<span class="sd">        (transients never skip) and the ``filterwarnings`` call that makes a skip fatal.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -258,13 +259,18 @@
     <span class="n">_validate_time_no_duration</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
     <span class="n">time_str</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">_format_api_dates</span><span class="p">(</span>
-            <span class="n">time</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"time"</span><span class="p">,</span> <span class="n">single_value_hint</span><span class="o">=</span><span class="s2">"an instant ('2020-01-01')"</span>
+            <span class="n">time</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"time"</span><span class="p">,</span>
+            <span class="n">single_value_hint</span><span class="o">=</span><span class="s2">"an instant ('2020-01-01')"</span><span class="p">,</span>
+            <span class="c1"># The STAC firewall rejects ``datetime=../2026-01-01`` with HTTP</span>
+            <span class="c1"># 403; STAC treats an empty start (``/2026-01-01``) as open.</span>
+            <span class="n">open_start</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">else</span> <span class="kc">None</span>
     <span class="p">)</span>
 
-    <span class="c1"># Mirror R: pin file_type server-side only when one type is requested.</span>
+    <span class="c1"># Match R: set file_type server-side only when one type is requested.</span>
     <span class="n">server_file_type</span> <span class="o">=</span> <span class="n">file_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">filter_str</span> <span class="o">=</span> <span class="n">_build_filter</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="p">,</span> <span class="n">server_file_type</span><span class="p">)</span>
 
@@ -301,7 +307,10 @@
 <span class="w">    </span><span class="sd">"""Raise ValueError if ``time`` contains an ISO 8601 duration."""</span>
     <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_DURATION_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
+    <span class="c1"># ``_coerce_to_list`` keeps a lone ``date``/``Timestamp`` whole, where</span>
+    <span class="c1"># ``_as_list`` would try to iterate it.</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">_coerce_to_list</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_DURATION_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">"ISO 8601 durations (e.g. 'P7D') are not supported in `time` "</span>
             <span class="s2">"for the rating-curve service. Provide a date or interval instead."</span>
@@ -328,11 +337,16 @@
 <span class="sd">    """</span>
     <span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">monitoring_location_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ids</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="p">)</span>
-        <span class="n">joined</span> <span class="o">=</span> <span class="s2">"', '"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">)</span>
-        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"monitoring_location_id IN ('</span><span class="si">{</span><span class="n">joined</span><span class="si">}</span><span class="s2">')"</span><span class="p">)</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">_cql_in_clause</span><span class="p">(</span>
+                <span class="s2">"monitoring_location_id"</span><span class="p">,</span>
+                <span class="n">_as_list</span><span class="p">(</span><span class="n">monitoring_location_id</span><span class="p">),</span>
+                <span class="n">remedy</span><span class="o">=</span><span class="s2">"Pass an 'AGENCY-ID' id, e.g., 'USGS-01646500'."</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file_type = '</span><span class="si">{</span><span class="n">_quote_cql_str</span><span class="p">(</span><span class="n">file_type</span><span class="p">)</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="c1"># Already checked against _VALID_FILE_TYPES, none of which has a quote.</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file_type = '</span><span class="si">{</span><span class="n">file_type</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="k">return</span> <span class="s2">" AND "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="k">else</span> <span class="kc">None</span>
 
 
@@ -343,14 +357,14 @@
     <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">ssl_check</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""Run STAC ``/search`` and return ALL matching features.</span>
+<span class="w">    </span><span class="sd">"""Run STAC ``/search`` and return all matching features.</span>
 
 <span class="sd">    ``limit`` is the page size (clamped to the service maximum of 10,000); the</span>
 <span class="sd">    STAC ``next`` link is followed until exhausted so a result set larger than</span>
-<span class="sd">    one page isn't silently truncated.</span>
+<span class="sd">    one page is not truncated.</span>
 
 <span class="sd">    The page walk is :func:`~dataretrieval.transport.pagination.run_paginated`</span>
-<span class="sd">    with STAC strategies. Pages carry features rather than rows, so each page</span>
+<span class="sd">    with STAC strategies. Pages hold features rather than rows, so each page</span>
 <span class="sd">    frame wraps the raw feature dicts in a single ``feature`` column.</span>
 <span class="sd">    """</span>
     <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"limit"</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)}</span>
@@ -367,13 +381,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">parse_response</span><span class="p">(</span><span class="n">resp</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="n">page</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"feature"</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"features"</span><span class="p">,</span> <span class="p">[])})</span>
-        <span class="c1"># The STAC ``next`` link is a fully-formed GET href carrying the</span>
+        <span class="c1"># The STAC ``next`` link is a complete GET href that includes the</span>
         <span class="c1"># limit/filter/bbox and a continuation token, so it becomes the</span>
         <span class="c1"># cursor verbatim -- except for the shared safety policy: the href is</span>
         <span class="c1"># response data, so it is checked before it becomes a request. A link</span>
-        <span class="c1"># to another host would carry this request's API key off the</span>
-        <span class="c1"># authorized host, and one carrying ``user:pass@`` would mint an</span>
-        <span class="c1"># ``Authorization: Basic`` header the caller never configured.</span>
+        <span class="c1"># to another host would send this request's API key to a host</span>
+        <span class="c1"># other than the authorized one, and one with ``user:pass@`` would</span>
+        <span class="c1"># produce an ``Authorization: Basic`` header the caller never configured.</span>
         <span class="n">href</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
             <span class="p">(</span><span class="n">lnk</span><span class="p">[</span><span class="s2">"href"</span><span class="p">]</span> <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"links"</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">lnk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rel"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"next"</span><span class="p">),</span>
             <span class="kc">None</span><span class="p">,</span>
@@ -411,13 +425,19 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A body-less stand-in the executor can aggregate.</span>
 
-<span class="sd">    The executor keeps every completed item's response until the drive ends,</span>
+<span class="sd">    The executor keeps every completed item's response until the run ends,</span>
 <span class="sd">    but its aggregation reads only status, headers, and URL -- never the</span>
-<span class="sd">    body. Handing it a stand-in keeps a large batch from pinning every</span>
-<span class="sd">    downloaded file in memory for the whole drive. ``elapsed`` is left</span>
+<span class="sd">    body. Passing it a stand-in keeps a large batch from holding every</span>
+<span class="sd">    downloaded file in memory for the whole run. ``elapsed`` is left</span>
 <span class="sd">    unset; the aggregate's ``_safe_elapsed`` treats that as zero.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">httpx</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_rating</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write one rating to disk as UTF-8, preserving line endings."""</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
 
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_fetch_rating</span><span class="p">(</span>
@@ -425,10 +445,9 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Fetch one feature's data asset, parse RDB, optionally persist to disk.</span>
 
-<span class="sd">    Headers are evaluated against each asset href -- assets can live on a</span>
-<span class="sd">    different host than the catalog, and must not inherit its auth. Runs</span>
-<span class="sd">    inside a drive: the executor publishes the shared client before any</span>
-<span class="sd">    fetch starts.</span>
+<span class="sd">    Headers are evaluated against each asset href -- assets can be on a different host</span>
+<span class="sd">    than the catalog, and must not receive its credentials. Runs inside a fan-out run:</span>
+<span class="sd">    the executor sets the shared client before any fetch starts.</span>
 <span class="sd">    """</span>
     <span class="n">fid</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
     <span class="n">href</span> <span class="o">=</span> <span class="n">_asset_href</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
@@ -441,13 +460,14 @@
     <span class="n">headers</span> <span class="o">=</span> <span class="n">_default_headers</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">active_client</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"_fetch_rating must run inside a FanOut drive."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"_fetch_rating must run inside a FanOut run."</span><span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
     <span class="n">_raise_for_non_200</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">fid</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">anyio</span><span class="o">.</span><span class="n">to_thread</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span>
+            <span class="n">_write_rating</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">fid</span><span class="p">),</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+        <span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">read_rdb</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
     <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"comment"</span><span class="p">]</span> <span class="o">=</span> <span class="n">extract_rdb_comment</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
@@ -462,7 +482,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Download every feature's rating over the shared fan-out executor.</span>
 
-<span class="sd">    The plan is the feature list itself -- ``FanOut`` asks a plan only to be</span>
+<span class="sd">    The plan is the feature list itself -- ``FanOut`` requires a plan only to be</span>
 <span class="sd">    sized and iterable -- so the downloads get bounded concurrency,</span>
 <span class="sd">    per-attempt retry, the progress line, and the resumable interruption</span>
 <span class="sd">    taxonomy.</span>
@@ -474,15 +494,15 @@
 <span class="sd">    warns with :class:`~dataretrieval.exceptions.SkippedRatingWarning` and</span>
 <span class="sd">    skips the feature. ``OSError`` writing ``file_path`` propagates -- a</span>
 <span class="sd">    local disk problem is not a per-feature condition. Raw ``httpx`` errors</span>
-<span class="sd">    pass through untouched so the executor can classify and retry them.</span>
+<span class="sd">    pass through unchanged so the executor can classify and retry them.</span>
 
 <span class="sd">    The public result is a dict keyed by feature id, so the fetch closure</span>
 <span class="sd">    accumulates it; the executor's combined frame is not the return shape and</span>
-<span class="sd">    is discarded. Both outcomes hand the executor a body-less</span>
+<span class="sd">    is discarded. Both outcomes return to the executor a body-less</span>
 <span class="sd">    :func:`_inert_response` -- a skip so the item counts as complete (a later</span>
 <span class="sd">    ``resume()`` continues past it rather than re-attempting), a success so</span>
-<span class="sd">    the drive doesn't pin every downloaded file in memory while keeping the</span>
-<span class="sd">    real status and quota headers for aggregation.</span>
+<span class="sd">    the run does not hold every downloaded file in memory while keeping the</span>
+<span class="sd">    response's status and quota headers for aggregation.</span>
 <span class="sd">    """</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">features</span><span class="p">:</span>

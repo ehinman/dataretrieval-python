@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Datetime Information &mdash; dataretrieval 0.1.dev1+g0a7d47497 documentation</title>
+  <title>Datetime Information &mdash; dataretrieval 0.1.dev1+g776c8b039 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3f557a2e"></script>
+      <script src="../_static/documentation_options.js?v=7d14b0cf"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -99,6 +99,11 @@ dataframe itself uses a default integer index. For sub-daily data — such as
 continuous (instantaneous) values — <code class="docutils literal notranslate"><span class="pre">time</span></code> is a timezone-aware
 <code class="docutils literal notranslate"><span class="pre">datetime64[us,</span> <span class="pre">UTC]</span></code> column. Daily values represent a whole calendar day,
 so their <code class="docutils literal notranslate"><span class="pre">time</span></code> column is timezone-naive (dates only).</p>
+<p>The same rule applies to a getter’s date arguments (<code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">begin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">datetime</span></code>, <code class="docutils literal notranslate"><span class="pre">last_modified</span></code>). As in pandas, a date or time without
+an offset is UTC, and one with an offset is converted to UTC, so
+<code class="docutils literal notranslate"><span class="pre">time=&quot;2024-03-01/2024-03-02&quot;</span></code> selects the same UTC days on every machine.
+For a local time, include the offset: <code class="docutils literal notranslate"><span class="pre">&quot;2024-03-01T00:00:00-06:00&quot;</span></code>.</p>
 <section id="inspecting-timestamps">
 <h2>Inspecting Timestamps<a class="headerlink" href="#inspecting-timestamps" title="Link to this heading"></a></h2>
 <p>For continuous data, the <code class="docutils literal notranslate"><span class="pre">time</span></code> column holds UTC-localized pandas timestamps.</p>
@@ -130,10 +135,10 @@ them to any local timezone with the pandas <code class="docutils literal notrans
 <span class="go">Name: time, dtype: datetime64[us, America/New_York]</span>
 </pre></div>
 </div>
-<p>After conversion the timestamps carry New York’s offset — <code class="docutils literal notranslate"><span class="pre">-05:00</span></code> during
+<p>After conversion the timestamps have New York’s offset — <code class="docutils literal notranslate"><span class="pre">-05:00</span></code> during
 standard time, or <code class="docutils literal notranslate"><span class="pre">-04:00</span></code> during daylight saving time, since New York is 4
 or 5 hours behind UTC depending on the time of year. The first midnight-UTC
-reading rolls back to the previous calendar day (<code class="docutils literal notranslate"><span class="pre">2024-02-29</span></code>) once shifted
+reading falls on the previous calendar day (<code class="docutils literal notranslate"><span class="pre">2024-02-29</span></code>) once shifted
 into New York time.</p>
 </section>
 <section id="daily-values">

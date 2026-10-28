@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.wqp &mdash; dataretrieval 0.1.dev1+g0a7d47497 documentation</title>
+  <title>dataretrieval.wqp &mdash; dataretrieval 0.1.dev1+g776c8b039 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=3f557a2e"></script>
+      <script src="../../_static/documentation_options.js?v=7d14b0cf"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -81,7 +81,7 @@
 
 <span class="sd">.. todo::</span>
 
-<span class="sd">    - implement other services like Organization, Activity, etc.</span>
+<span class="sd">    - implement other collections like Organization, Activity, etc.</span>
 
 <span class="sd">"""</span>
 
@@ -89,12 +89,10 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">NamedTuple</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">_configuration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval._csv</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_code_csv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval._response_metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseMetadata</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval._validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_one_of</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -133,7 +131,7 @@
 
 <span class="c1">#: Root the Water Quality Portal serves both its interfaces from. Private</span>
 <span class="c1">#: because the two builders below are the documented way to name a WQP URL;</span>
-<span class="c1">#: this is only the piece they share, and the piece a redirect replaces.</span>
+<span class="c1">#: this is only the part they share, and the part a redirect replaces.</span>
 <span class="n">_WQP_BASE_URL</span> <span class="o">=</span> <span class="s2">"https://www.waterqualitydata.us"</span>
 
 <span class="n">result_profiles_wqx3</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"basicPhysChem"</span><span class="p">,</span> <span class="s2">"fullPhysChem"</span><span class="p">,</span> <span class="s2">"narrow"</span><span class="p">]</span>
@@ -197,34 +195,6 @@
     <span class="k">return</span> <span class="n">kwargs</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_is_code_column</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Report whether a WQP column name denotes a code or identifier.</span>
-
-<span class="sd">    Such columns (HUCs, parameter codes, FIPS codes) have leading zeros that</span>
-<span class="sd">    are significant and must be preserved as ``str``. A name qualifies if it</span>
-<span class="sd">    ends with "code" or contains "identifier", "huc", or "fips".</span>
-<span class="sd">    """</span>
-    <span class="n">lname</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">lname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"code"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
-        <span class="n">token</span> <span class="ow">in</span> <span class="n">lname</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"identifier"</span><span class="p">,</span> <span class="s2">"huc"</span><span class="p">,</span> <span class="s2">"fips"</span><span class="p">)</span>
-    <span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_read_wqp_csv</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Read a WQP CSV, forcing code/identifier columns to ``str``.</span>
-
-<span class="sd">    WQP returns codes with significant leading zeros — HUCs, parameter codes</span>
-<span class="sd">    (``USGSpcode``), FIPS state/county codes. A bare ``read_csv`` infers those</span>
-<span class="sd">    as int/float and silently drops the zeros (``"00060"`` -&gt; ``60``, HUC8</span>
-<span class="sd">    ``"07090002"`` -&gt; ``7090002``). Read the header first, then re-read with</span>
-<span class="sd">    ``dtype=str`` for every column that :func:`_is_code_column` flags, so the</span>
-<span class="sd">    zeros survive.</span>
-<span class="sd">    """</span>
-    <span class="n">columns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">","</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span>
-    <span class="n">str_cols</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="nb">str</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">_is_code_column</span><span class="p">(</span><span class="n">col</span><span class="p">)}</span>
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">","</span><span class="p">,</span> <span class="n">low_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">str_cols</span><span class="p">)</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_query_wqp</span><span class="p">(</span>
     <span class="n">service</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -232,14 +202,14 @@
     <span class="n">legacy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">WQP_Metadata</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Run one WQP getter query against the selected service.</span>
+<span class="w">    </span><span class="sd">"""Run one WQP getter query against the selected collection.</span>
 
-<span class="sd">    Services with a WQX3.0 equivalent (those in :data:`services_wqx3`) use</span>
-<span class="sd">    :func:`wqx3_url` when ``legacy=False`` and :func:`wqp_url` otherwise.</span>
-<span class="sd">    Legacy-only services route through :func:`_legacy_only_url`, which warns</span>
-<span class="sd">    and falls back to the legacy profile. ``dataProfile`` is validated against</span>
-<span class="sd">    :data:`_PROFILE_RULES`, and the CSV response is parsed via</span>
-<span class="sd">    :func:`_read_wqp_csv`.</span>
+<span class="sd">    Collections with a WQX3.0 equivalent (those in :data:`services_wqx3`,</span>
+<span class="sd">    which keeps its legacy name) use :func:`wqx3_url` when ``legacy=False``</span>
+<span class="sd">    and :func:`wqp_url` otherwise. Legacy-only collections route through</span>
+<span class="sd">    :func:`_legacy_only_url`, which warns and falls back to the legacy</span>
+<span class="sd">    profile. ``dataProfile`` is validated against :data:`_PROFILE_RULES`, and</span>
+<span class="sd">    the CSV response is parsed via :func:`dataretrieval._csv.read_code_csv`.</span>
 <span class="sd">    """</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_check_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_resolve_profile</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">legacy</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
@@ -259,9 +229,9 @@
     <span class="n">response</span> <span class="o">=</span> <span class="n">_query_with_retry</span><span class="p">(</span>
         <span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span> <span class="n">ssl_check</span><span class="o">=</span><span class="n">ssl_check</span><span class="p">,</span> <span class="n">adapter</span><span class="o">=</span><span class="s2">"wqp"</span>
     <span class="p">)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">_read_wqp_csv</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">read_code_csv</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
     <span class="c1"># Only get_results documents the appended DateTime columns and the</span>
-    <span class="c1"># activity-start sort, so the other services keep their parsed shape.</span>
+    <span class="c1"># activity-start sort, so the other collections keep their parsed shape.</span>
     <span class="k">if</span> <span class="n">service</span> <span class="o">==</span> <span class="s2">"Result"</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">_attach_datetime_columns</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">WQP_Metadata</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -784,7 +754,7 @@
 
 <span class="sd">    The portal serves the legacy and WQX3 interfaces from one root under</span>
 <span class="sd">    different paths, so a ``WqpConfiguration(base_url=...)`` names that root and</span>
-<span class="sd">    both follow it (ADR 0011).</span>
+<span class="sd">    both use it (ADR 0011).</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_configuration</span><span class="o">.</span><span class="n">base_url</span><span class="p">(</span><span class="n">adapter</span><span class="o">=</span><span class="s2">"wqp"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">_WQP_BASE_URL</span><span class="p">)</span>
 
@@ -875,11 +845,11 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Check kwargs for unsupported parameters.</span>
 
-<span class="sd">    Every WQP getter's ``**kwargs`` funnels through here on its way to the</span>
-<span class="sd">    query payload, so this is the choke point where a credential-shaped name is</span>
+<span class="sd">    Every WQP getter's ``**kwargs`` passes through here before it becomes the</span>
+<span class="sd">    query payload, so this is the one place where a credential-shaped name is</span>
 <span class="sd">    refused. The predicate is the credentials leaf's, shared with Water Data's</span>
 <span class="sd">    ``**queryables`` passthrough: ``api_key=`` is a plausible guess on any</span>
-<span class="sd">    getter now that ``configure(Configuration(api_key=...))`` is the spelling,</span>
+<span class="sd">    getter now that ``configure(Configuration(api_key=...))`` is the documented form,</span>
 <span class="sd">    and this is the adapter with the widest passthrough -- ten getters, whose</span>
 <span class="sd">    filter names the portal rather than this package defines. The returned</span>
 <span class="sd">    payload materializes non-string iterables as lists so one-shot iterators</span>
@@ -943,8 +913,8 @@
 <span class="sd">    Passing ``legacy=False`` to one of these helpers emits a ``UserWarning``</span>
 <span class="sd">    explaining the fallback and *also* suppresses the legacy</span>
 <span class="sd">    :class:`~dataretrieval.exceptions.DataCurrencyWarning` that ``wqp_url``</span>
-<span class="sd">    would otherwise raise. That warning's message claims setting</span>
-<span class="sd">    ``legacy=False`` removes it, which is a lie for endpoints that have no</span>
+<span class="sd">    would otherwise raise. That warning's message states that setting</span>
+<span class="sd">    ``legacy=False`` removes it, which is false for endpoints that have no</span>
 <span class="sd">    WQX3.0 alternative.</span>
 <span class="sd">    """</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
@@ -960,8 +930,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">WqpConfiguration</span><span class="p">(</span><span class="n">_Redirectable</span><span class="p">,</span> <span class="n">_Retrying</span><span class="p">,</span> <span class="n">BaseConfiguration</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Settings for Water Quality Portal calls alone.</span>
 
-<span class="sd">    No fan-out dials: a WQP query is answered by a single request, so a</span>
-<span class="sd">    concurrency cap could only report a number nothing honours.</span>
+<span class="sd">    No fan-out settings: a WQP query is served by a single request, so a</span>
+<span class="sd">    concurrency cap could only report a number nothing reads.</span>
 
 <span class="sd">    Declared here rather than in :mod:`dataretrieval.configuration`</span>
 <span class="sd">    (ADR 0011).</span>
@@ -975,7 +945,7 @@
 <span class="sd">        stops.</span>
 <span class="sd">    base_url : str, optional</span>
 <span class="sd">        Root to send WQP requests to, instead of the portal's own. Both</span>
-<span class="sd">        interfaces hang off it, so one value moves the legacy ``/data/``</span>
+<span class="sd">        interfaces are built on it, so one value redirects the legacy ``/data/``</span>
 <span class="sd">        and the WQX3 ``/wqx3/`` paths together. Code only: the file and</span>
 <span class="sd">        the environment refuse it.</span>
 <span class="sd">    """</span>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dataretrieval.ngwmn &mdash; dataretrieval 0.1.dev1+g0a7d47497 documentation</title>
+  <title>dataretrieval.ngwmn &mdash; dataretrieval 0.1.dev1+g776c8b039 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=3f557a2e"></script>
+      <script src="../../_static/documentation_options.js?v=7d14b0cf"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -83,7 +83,7 @@
 <span class="sd">``providers``. Each getter below delegates to the shared OGC facade</span>
 <span class="sd">(:func:`~dataretrieval.ogc.get_ogc_data`) with ``base_url=NGWMN_OGC_API_URL``.</span>
 <span class="sd">Multi-value chunking, pagination, retry/resume, and result shaping therefore</span>
-<span class="sd">behave exactly as they do for the main Water Data getters.</span>
+<span class="sd">behave as they do for the main Water Data getters.</span>
 
 <span class="sd">Unlike the main Water Data collections, NGWMN aggregates monitoring locations</span>
 <span class="sd">from many agencies, so ``monitoring_location_id`` values use other agency</span>
@@ -135,17 +135,17 @@
 <span class="n">NGWMN_OGC_API_URL</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/ngwmn/ogcapi"</span>
 
 <span class="c1"># --- state-filter shim -------------------------------------------------------</span>
-<span class="c1"># NGWMN's collections expose DIFFERENT state queryables: ``sites`` filters on</span>
+<span class="c1"># NGWMN's collections expose different state queryables: ``sites`` filters on</span>
 <span class="c1"># the full ``state_name`` (e.g. "Wisconsin"), while ``providers`` filters on the</span>
 <span class="c1"># two-letter postal ``state`` (uppercase, e.g. "WI"). The state-aware getters</span>
 <span class="c1"># take a single ``state`` parameter accepting any US-state encoding (full name,</span>
 <span class="c1"># postal code, or FIPS code); ``_get`` resolves it into the one queryable each</span>
-<span class="c1"># collection wants via the shared ``codes.states.apply_state``, keyed by</span>
+<span class="c1"># collection accepts via the shared ``codes.states.apply_state``, keyed by</span>
 <span class="c1"># ``_STATE_QUERYABLE`` below.</span>
 <span class="c1">#</span>
-<span class="c1"># This shim exists only to smooth over that upstream asymmetry.</span>
+<span class="c1"># This shim exists only to handle that upstream asymmetry.</span>
 <span class="c1"># ``tests/ngwmn_test.py::test_state_queryables_still_diverge_upstream`` fails --</span>
-<span class="c1"># the signal to remove it -- if the API ever unifies the two queryables.</span>
+<span class="c1"># the indication that it can be removed -- if the API ever unifies the two queryables.</span>
 <span class="n">_STATE_QUERYABLE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1"># service -&gt; ``apply_state`` kwargs (destination queryable + to_state format)</span>
     <span class="s2">"sites"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"into"</span><span class="p">:</span> <span class="s2">"state_name"</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">:</span> <span class="s2">"name"</span><span class="p">},</span>
@@ -157,10 +157,13 @@
 <span class="c1"># (there is no service-specific id name as there is for the main collections).</span>
 <span class="n">_NGWMN_OUTPUT_ID</span> <span class="o">=</span> <span class="s2">"id"</span>
 
-<span class="c1"># NGWMN's request shape matches the generic OGC default (no CQL2-only or</span>
-<span class="c1"># date-only collections), but its result columns need their own coercion and</span>
+<span class="c1"># NGWMN reads comma-joined GET values as lists, and its firewall refuses a text</span>
+<span class="c1"># filter naming a site, so a list could not be folded into one. It has no</span>
+<span class="c1"># date-only collections, but its result columns need their own coercion and</span>
 <span class="c1"># sort vocabulary: water-level observations are timestamped by ``sample_time``</span>
-<span class="c1"># (not the Water Data ``time``) and report depths/levels in feet.</span>
+<span class="c1"># (not the Water Data ``time``) and report depths/levels in feet. Its firewall</span>
+<span class="c1"># rejects ``datetime=../2016-01-01`` with HTTP 403, so an open start is sent</span>
+<span class="c1"># empty (``/2016-01-01``), which NGWMN treats as open.</span>
 <span class="n">NGWMN_DIALECT</span> <span class="o">=</span> <span class="n">OgcDialect</span><span class="p">(</span>
     <span class="n">time_cols</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"sample_time"</span><span class="p">}),</span>
     <span class="n">numerical_cols</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span>
@@ -171,6 +174,7 @@
         <span class="p">}</span>
     <span class="p">),</span>
     <span class="n">sort_cols</span><span class="o">=</span><span class="p">(</span><span class="s2">"sample_time"</span><span class="p">,</span> <span class="s2">"monitoring_location_id"</span><span class="p">),</span>
+    <span class="n">open_start</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -178,7 +182,7 @@
 <span class="w">    </span><span class="sd">"""Marshal a getter's arguments and dispatch to the shared OGC facade.</span>
 
 <span class="sd">    Every NGWMN getter ends with this same call; centralizing it keeps the</span>
-<span class="sd">    NGWMN base URL, output id, and dialect wired up in exactly one place.</span>
+<span class="sd">    NGWMN base URL, output id, and dialect set in one place.</span>
 <span class="sd">    """</span>
     <span class="n">queryable</span> <span class="o">=</span> <span class="n">_STATE_QUERYABLE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">queryable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -256,7 +260,8 @@
 <span class="sd">    state : str or iterable of str, optional</span>
 <span class="sd">        State filter. Accepts a full name (``"Wisconsin"``), a two-letter</span>
 <span class="sd">        postal code (``"WI"``), or a two-digit ANSI/FIPS code (``"55"``).</span>
-<span class="sd">        The 50 states, DC, and the five US territories.</span>
+<span class="sd">        The 50 states, DC, and the five US territories. Sent as the API's</span>
+<span class="sd">        ``state_name`` field.</span>
 <span class="sd">    county_name : str or iterable of str, optional</span>
 <span class="sd">        County name filter.</span>
 <span class="sd">    aquifer_name, site_type, aquifer_type_code : str or iterable, optional</span>
@@ -346,7 +351,8 @@
 <span class="sd">        Vertical datum of the reported water level.</span>
 <span class="sd">    datetime : str or iterable of str, optional</span>
 <span class="sd">        Temporal filter — a single instant or a two-element ``[start, end]``</span>
-<span class="sd">        range (ISO-8601 dates/datetimes); ``".."`` denotes an open end.</span>
+<span class="sd">        range (ISO-8601 dates/datetimes); ``None`` or ``".."`` denotes an</span>
+<span class="sd">        open end.</span>
 <span class="sd">    properties : str or iterable of str, optional</span>
 <span class="sd">        Subset of columns to return. ``None`` (default) returns all columns.</span>
 <span class="sd">    limit : int, optional</span>
@@ -499,7 +505,8 @@
 <span class="sd">    state : str or iterable of str, optional</span>
 <span class="sd">        State filter. Accepts a full name (``"Wisconsin"``), a two-letter</span>
 <span class="sd">        postal code (``"WI"``), or a two-digit ANSI/FIPS code (``"55"``).</span>
-<span class="sd">        The 50 states, DC, and the five US territories. Only one</span>
+<span class="sd">        The 50 states, DC, and the five US territories. Sent as the API's</span>
+<span class="sd">        ``state`` field, as a postal code. Only one</span>
 <span class="sd">        state at a time — a multi-value state filter</span>
 <span class="sd">        returns no records for this collection.</span>
 <span class="sd">    agency_code : str or iterable of str, optional</span>
@@ -545,8 +552,8 @@
 
 <span class="sd">    NGWMN is a second OGC API on the Water Data host, so its queries</span>
 <span class="sd">    divide along the same URL byte budget and take the same two fan-out</span>
-<span class="sd">    dials. The API key is not among them: one gateway fronts both</span>
-<span class="sd">    adapters, so one key and one quota pool serve them (ADR 0010).</span>
+<span class="sd">    settings. The API key is not among them: one gateway fronts both</span>
+<span class="sd">    adapters, so they share one key and one quota pool (ADR 0010).</span>
 
 <span class="sd">    Declared here rather than in :mod:`dataretrieval.configuration`</span>
 <span class="sd">    (ADR 0011).</span>
@@ -562,7 +569,7 @@
 <span class="sd">        OGC API base to send NGWMN requests to, instead of the service's</span>
 <span class="sd">        own (``NGWMN_OGC_API_URL``). Code only: the file and the</span>
 <span class="sd">        environment refuse it. The API key is scoped to the host that</span>
-<span class="sd">        honors it, so a redirected call carries no key.</span>
+<span class="sd">        accepts it, so a redirected call sends no key.</span>
 <span class="sd">    concurrency : int or str, optional</span>
 <span class="sd">        Cap on simultaneous sub-requests, or ``"unbounded"``.</span>
 <span class="sd">    parallel_chunks : int, optional</span>
